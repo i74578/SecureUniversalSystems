@@ -12,12 +12,18 @@ void setup() {
   initArray(arr);
   byte temp[] = {0x01, 0x02, 0x23, 0xFF};
   byte temp2[] = {0x21, 0xF2, 0xAB, 0xDD};
+  byte temp3[] = {0x21, 0xF2, 0xAB, 0xDF};
   addMember(arr, temp, 1234);
   addMember(arr, temp2, 5678);
   if (checkAccess(arr, temp)) {
     Serial.println("Yes!!");
   } else {
     Serial.println("defeat...");
+  }
+  if (checkAccess(arr, temp3)) {
+    Serial.println("wrong");
+  } else {
+    Serial.println("yes!");
   }
 
 }
@@ -54,10 +60,10 @@ void addMember(member m[], byte newNUID[], int newPIN) {
 }
 bool checkAccess(member m[], byte NUID[]) {
 
-  if (m[i].NUID[0] == 0x00 &&
-      m[i].NUID[1] == 0x00 &&
-      m[i].NUID[2] == 0x00 &&
-      m[i].NUID[3] == 0x00) {
+  if (NUID[0] == 0x00 &&
+      NUID[1] == 0x00 &&
+      NUID[2] == 0x00 &&
+      NUID[3] == 0x00) {
     // 00 00 00 00 is used for empty entries in the list, so it's not a valid NUID in our case.
     return false;
   }
