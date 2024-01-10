@@ -11,7 +11,6 @@
 
 const byte correctCard[4] = {0x40, 0xC8, 0xDB, 0x1E};
 
-
 MFRC522 rfid(SS_PIN, RST_PIN);  // Instance of the class
 
 MFRC522::MIFARE_Key key;
@@ -66,9 +65,9 @@ void loop() {
   // Serial.print(F("In hex: "));
   printHex(rfid.uid.uidByte, rfid.uid.size);
   Serial.println();
-  if (rfid.uid.uidByte[0] == correctCard[0] ||
-      rfid.uid.uidByte[1] == correctCard[1] ||
-      rfid.uid.uidByte[2] == correctCard[2] ||
+  if (rfid.uid.uidByte[0] == correctCard[0] &&
+      rfid.uid.uidByte[1] == correctCard[1] &&
+      rfid.uid.uidByte[2] == correctCard[2] &&
       rfid.uid.uidByte[3] == correctCard[3] ) {
     Serial.println("Access granted.");
   } else {
@@ -79,7 +78,6 @@ void loop() {
   // Serial.println();
   // Serial.print(F("In dec: "));
   // printDec(rfid.uid.uidByte, rfid.uid.size);
-  Serial.println();
 
   // Halt PICC
   rfid.PICC_HaltA();
@@ -108,3 +106,6 @@ void printDec(byte *buffer, byte bufferSize) {
     Serial.print(buffer[i], DEC);
   }
 }
+
+
+
