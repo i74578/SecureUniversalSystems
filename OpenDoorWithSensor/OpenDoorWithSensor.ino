@@ -1,7 +1,7 @@
 #include <Servo.h>
 
 Servo servo;
-int angle = 180;
+int angle = 0;
 #define buttonPin D3
 bool ongoingClick = false;
 
@@ -25,11 +25,9 @@ void setup() {
 
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
   if (distance() < 30) {
     open();
-    delay(5000);
+    delay(1000);
     close();
 
     }
@@ -43,19 +41,17 @@ int distance() {
   digitalWrite(trigPin, LOW);
   duration = pulseIn(echoPin, HIGH);
   L = (duration * .0343) / 2;
-  Serial.print("This is the distance: ");
-  Serial.println(L);
   return L;
 }
   
 
 void open() {
-    angle = 10;
+    angle = 180;
     servo.write(angle);
   }
 
 void close() {
-    angle = 180;
+    angle = 0;
     servo.write(angle);
   }
 
