@@ -2,8 +2,7 @@
 
 Servo servo;
 int angle = 0;
-#define buttonPin D3
-bool ongoingClick = false;
+
 
 float duration;
 int L;
@@ -18,7 +17,6 @@ void setup() {
   Serial.begin(115200);
   servo.attach(D1);
   servo.write(angle);
-  pinMode(buttonPin, INPUT_PULLUP);
   unsigned long current_millis;
   unsigned long prev_millis;
 }
@@ -26,11 +24,8 @@ void setup() {
 
 void loop() {
   if (distance() < 30) {
-    open();
-    delay(1000);
-    close();
-
-    }
+    door();
+  }
 }
 
 int distance() {
@@ -43,16 +38,12 @@ int distance() {
   L = (duration * .0343) / 2;
   return L;
 }
-  
 
-void open() {
-    angle = 180;
-    servo.write(angle);
-  }
 
-void close() {
-    angle = 0;
-    servo.write(angle);
-  }
-
-  
+void door() {
+  angle = 180;
+  servo.write(angle);
+  delay(5000);
+  angle = 0;
+  servo.write(angle);
+}
