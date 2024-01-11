@@ -13,15 +13,11 @@ void setup() {
   Serial.println("Hello world!");
   initArray(employees);
   resetCurrentlyLoggingIn();
-  byte UID1[] = {0x01, 0x02, 0x23, 0xFF};
-  byte UID2[] = {0x21, 0xF2, 0xAB, 0xDD};
-  byte UID3[] = {0x21, 0xF2, 0xAB, 0xDF};
-  addMember(employees, UID1, 1234);
-  addMember(employees, UID2, 5678);
 
-  startLogin()
+  testSystem();
 
   
+
 
 }
 
@@ -71,10 +67,6 @@ for (int i = 0; i < arrLength; i++) {
       return;
     }
   }
-
-
-
-
 }
 
 bool startLogin(employee e[], byte NUID[]) {
@@ -105,17 +97,77 @@ bool startLogin(employee e[], byte NUID[]) {
 }
 
 bool enterPIN(int PIN) {
+  // for when the user enters their PIN after scanning their card.
 
+  if (currentlyLoggingIn.NUID[0] == 0x00 &&
+      currentlyLoggingIn.NUID[1] == 0x00 &&
+      currentlyLoggingIn.NUID[2] == 0x00 &&
+      currentlyLoggingIn.NUID[3] == 0x00) {
+    // nobody is currently trying to log in.
+    return false;
+  }
 
+  if (currentlyLoggingIn.PIN == PIN) {
+    // entered PIN matches expectations.
+    resetCurrentlyLoggingIn();
+    return true;
+  } else {
+    resetCurrentlyLoggingIn();
+    return false;
+  }
 
 }
 
 void resetCurrentlyLoggingIn() {
-  //resets the value of currentlyLoggingIn to one of all zeroes.
+  // resets the value of currentlyLoggingIn to one of all zeroes.
+  // this prevents enterPIN() from allowing access before a card has been scanned.
   currentlyLoggingIn.NUID[0] = 0x00;
   currentlyLoggingIn.NUID[1] = 0x00;
   currentlyLoggingIn.NUID[2] = 0x00;
   currentlyLoggingIn.NUID[3] = 0x00;
   currentlyLoggingIn.PIN = 0;
 
+}
+
+
+void testSystem() {
+  // Tests:
+  byte UID1[] = {0x01, 0x02, 0x23, 0xFF};
+  byte UID2[] = {0x21, 0xF2, 0xAB, 0xDD};
+  byte UID3[] = {0x21, 0xF2, 0xAB, 0xDF};
+  addMember(employees, UID1, 1234);
+  addMember(employees, UID2, 5678);
+
+  if (startLogin(employees, UID1)) {
+    Serial.println("(good) Employee succesfully added");
+  } else {
+    Serial.println("(bad) Something went wrong adding the employee");
+  }
+
+  if (enterPIN(1234)) {
+    Serial.println("(good) Employee entered PIN succesfully");
+  } else {
+    Serial.println("(bad) Employee entered wrong PIN");
+  }
+
+  if (startLogin(employees, UID3)) {
+    Serial.println("(bad) Non-employee was allowed entry");
+  } else {
+    Serial.println("(good) Non-employee not allowed entry");
+  }
+
+  if (enterPIN(1234)) {
+    Serial.println("(bad) Entry permitted even though no card was scanned");
+  } else {
+    Serial.println("(good) No card, no entry");
+  }
+
+  startLogin(employees, UID1);
+  if (enterPIN(4321)) {
+    Serial.println("(bad) Employee allowed access with wrong PIN ");
+  } else {
+    Serial.println("(good) Employee entered wrong PIN and not allowed access");
+  }
+
+  // tests finished
 }
