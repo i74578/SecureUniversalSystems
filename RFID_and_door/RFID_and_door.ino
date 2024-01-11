@@ -8,8 +8,11 @@
 
 #define SS_PIN D8
 #define RST_PIN D0
+#define echoPin D2
+#define trigPin D4
 
-
+float duration;
+int L;
 Servo servo;
 int angle = 0;
 const byte correctCard[4] = { 0x91, 0x5D, 0xDE, 0x1D };
@@ -30,6 +33,8 @@ void setup() {
   rfid.PCD_DumpVersionToSerial();
   servo.attach(D1);
   servo.write(angle);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 
   for (byte i = 0; i < 6; i++) {
     key.keyByte[i] = 0xFF;
@@ -43,6 +48,13 @@ void setup() {
 
 void loop() {
 
+  if (distance() < 10) {
+    opendoor();
+    delay(1000);
+  }
+  if (distance() > 10) {
+    closedoor();
+  }
   // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
   if (!rfid.PICC_IsNewCardPresent())
     return;
@@ -71,11 +83,16 @@ void loop() {
   printHex(rfid.uid.uidByte, rfid.uid.size);
   Serial.println();
   if (rfid.uid.uidByte[0] == correctCard[0] && rfid.uid.uidByte[1] == correctCard[1] && rfid.uid.uidByte[2] == correctCard[2] && rfid.uid.uidByte[3] == correctCard[3]) {
-    door();
+    
+    opendoor();
+
+    if (distance()>10){
+      closedoor();
+    }
+
     Serial.println("Access granted.");
   } else {
     Serial.println("Access denied.");
-    
   }
 
 
@@ -111,10 +128,26 @@ void printDec(byte *buffer, byte bufferSize) {
   }
 }
 
-void door() {
+
+
+void opendoor() {
   angle = 180;
   servo.write(angle);
-  delay(5000);
-  angle = 0;
-  servo.write(angle);
+  }
+
+
+void closedoor(){
+    angle = 0;
+    servo.write(angle);
+}
+
+int distance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  L = (duration * .0343) / 2;
+  return L;
 }
