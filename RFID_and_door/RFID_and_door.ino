@@ -11,8 +11,6 @@
 #define echoPin D2
 #define trigPin D4
 
-float duration;
-int L;
 Servo servo;
 int angle = 0;
 const byte correctCard[4] = { 0x91, 0x5D, 0xDE, 0x1D };
@@ -91,7 +89,6 @@ void loop() {
     Serial.println("Access denied.");
   }
 
-
   // Serial.println();
   // Serial.print(F("In dec: "));
   // printDec(rfid.uid.uidByte, rfid.uid.size);
@@ -102,7 +99,6 @@ void loop() {
   // Stop encryption on PCD
   rfid.PCD_StopCrypto1();
 }
-
 
 /**
  		Helper routine to dump a byte array as hex values to Serial.
@@ -124,13 +120,10 @@ void printDec(byte *buffer, byte bufferSize) {
   }
 }
 
-
-
 void opendoor() {
   angle = 180;
   servo.write(angle);
   }
-
 
 void closedoor(){
     angle = 0;
@@ -143,7 +136,7 @@ int distance() {
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
-  duration = pulseIn(echoPin, HIGH);
-  L = (duration * .0343) / 2;
-  return L;
+  float duration = pulseIn(echoPin, HIGH);
+  
+  return (duration * .0343) / 2;
 }
