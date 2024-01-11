@@ -85,12 +85,8 @@ void loop() {
   if (rfid.uid.uidByte[0] == correctCard[0] && rfid.uid.uidByte[1] == correctCard[1] && rfid.uid.uidByte[2] == correctCard[2] && rfid.uid.uidByte[3] == correctCard[3]) {
     
     opendoor();
-
-    if (distance()>10){
-      closedoor();
-    }
-
     Serial.println("Access granted.");
+    delay(5000);
   } else {
     Serial.println("Access denied.");
   }
