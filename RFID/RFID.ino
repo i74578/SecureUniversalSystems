@@ -54,7 +54,7 @@ void loop() {
   if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI && piccType != MFRC522::PICC_TYPE_MIFARE_1K && piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
     Serial.println(F("Your tag is not of type MIFARE Classic."));
     return;
-  }
+  } 
 
   // Store NUID into nuidPICC array
   // for (byte i = 0; i < 4; i++) {
