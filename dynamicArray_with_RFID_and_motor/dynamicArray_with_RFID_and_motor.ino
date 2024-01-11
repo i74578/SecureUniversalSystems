@@ -9,8 +9,9 @@ struct employee {
 
 #define SDA_PIN D8 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
 #define RST_PIN D0 //pin connected to RST on the RFID reader.
-#define echoPin D2
-#define trigPin D4
+#define echoPin 3 //pin for echo from the ultrasonic sensor.
+#define trigPin D4 //pin for trig for ultrasonic sensor.
+#define servoPin D3 //pin for orange wire on servo
 
 const int arrLength = 10;
 employee employees[arrLength];
@@ -27,11 +28,12 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();      // Init SPI bus
   rfid.PCD_Init();  // Init MFRC522
-  servo.attach(D1);
+  Serial.println("Hello world!");
+  servo.attach(servoPin);
   servo.write(angle);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  Serial.println("Hello world!");
+  Serial.println("Hello again world!");
   initArray(employees);
   resetCurrentlyLoggingIn();
   byte myNuid[] = {0x91, 0x5D, 0xDE, 0x1D};
