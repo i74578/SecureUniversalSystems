@@ -4,7 +4,6 @@ struct employee {
 };
 
 const int arrLength = 10;
-int employeeCount = 0;
 employee employees[arrLength];
 employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is scanned. It is then used by enterPIN() to see if the PIN matches.
 
@@ -15,15 +14,9 @@ void setup() {
   resetCurrentlyLoggingIn();
 
   testSystem();
-
-  
-
-
 }
 
-void loop() { 
-
-}
+void loop() {}
 
 void initArray(employee e[]) {
   for (int i = 0; i < arrLength; i++) {
@@ -35,7 +28,7 @@ void initArray(employee e[]) {
   }
 }
 
-void addMember(employee e[], byte newNUID[], int newPIN) {
+void addEmployee(employee e[], byte newNUID[], int newPIN) {
   for (int i = 0; i < arrLength; i++) {
     if (e[i].NUID[0] == 0x00 &&
         e[i].NUID[1] == 0x00 &&
@@ -52,8 +45,8 @@ void addMember(employee e[], byte newNUID[], int newPIN) {
   }
 }
 
-void removeMember(employee e[], byte NUID[]) {
-for (int i = 0; i < arrLength; i++) {
+void removeEmployee(employee e[], byte NUID[]) {
+  for (int i = 0; i < arrLength; i++) {
     if (e[i].NUID[0] == NUID[0] &&
         e[i].NUID[1] == NUID[1] &&
         e[i].NUID[2] == NUID[2] &&
@@ -70,9 +63,8 @@ for (int i = 0; i < arrLength; i++) {
 }
 
 bool startLogin(employee e[], byte NUID[]) {
-
 // When user has scanned their card and entered the NUID, the system checks whether it exists in the list of people with access.
-// If it does, this function returns true and sets 
+// If it does, this function returns true and sets currentlyLoggingIn to the matching employee, so that enterPIN() knows which PIN to 
 
   if (NUID[0] == 0x00 &&
       NUID[1] == 0x00 &&
@@ -135,8 +127,8 @@ void testSystem() {
   byte UID1[] = {0x01, 0x02, 0x23, 0xFF};
   byte UID2[] = {0x21, 0xF2, 0xAB, 0xDD};
   byte UID3[] = {0x21, 0xF2, 0xAB, 0xDF};
-  addMember(employees, UID1, 1234);
-  addMember(employees, UID2, 5678);
+  addEmployee(employees, UID1, 1234);
+  addEmployee(employees, UID2, 5678);
 
   if (startLogin(employees, UID1)) {
     Serial.println("(good) Employee succesfully added");
@@ -168,6 +160,4 @@ void testSystem() {
   } else {
     Serial.println("(good) Employee entered wrong PIN and not allowed access");
   }
-
-  // tests finished
 }
