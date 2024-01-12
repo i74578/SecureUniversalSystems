@@ -6,8 +6,11 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-#define SS_PIN D8
+#define SDA_PIN D8
 #define RST_PIN D0
+// MISO <-> D6
+// MOSI <-> D7
+// SCK  <-> D5
 #define echoPin D2
 #define trigPin D4
 
@@ -15,7 +18,7 @@ Servo servo;
 int angle = 0;
 const byte correctCard[4] = { 0x91, 0x5D, 0xDE, 0x1D };
 
-MFRC522 rfid(SS_PIN, RST_PIN);  // Instance of the class
+MFRC522 rfid(SDA_PIN, RST_PIN);  // Instance of the class
 
 MFRC522::MIFARE_Key key;
 

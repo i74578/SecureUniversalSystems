@@ -6,12 +6,15 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-#define SS_PIN D8
+#define SDA_PIN D8
 #define RST_PIN D0
+// MISO <-> D6
+// MOSI <-> D7
+// SCK  <-> D5
 
 const byte correctCard[4] = {0x40, 0xC8, 0xDB, 0x1E};
 
-MFRC522 rfid(SS_PIN, RST_PIN);  // Instance of the class
+MFRC522 rfid(SDA_PIN, RST_PIN);  // Instance of the class
 
 MFRC522::MIFARE_Key key;
 

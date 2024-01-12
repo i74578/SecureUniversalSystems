@@ -8,6 +8,9 @@ struct employee {
 
 #define SDA_PIN D8 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
 #define RST_PIN D0 //pin connected to RST on the RFID reader.
+// MISO <-> D6
+// MOSI <-> D7
+// SCK  <-> D5
 
 const int arrLength = 10;
 employee employees[arrLength];
