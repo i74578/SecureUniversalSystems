@@ -1,4 +1,4 @@
-const String payload = "2ABCD,1234;EFGH,5678;";
+const String payload = "ABAB1212,1234;AB1FE24A,5678;";
 byte fieldNum = 0;
 String currentField = "NUID";
 int currentPIN;
@@ -6,16 +6,18 @@ byte currentNUID[2];
 
 
 
-  struct employee{ //employee struct
-    int PIN;
-    byte NUID[2];
-  };
+struct employee{ //employee struct
+  int PIN;
+  byte NUID[2];
+};
 
 
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+
+
   employee employees[payload.charAt(0)]; // the first char of the payload array determines the amount of employees there are.
   int employee_num = 0;
 
