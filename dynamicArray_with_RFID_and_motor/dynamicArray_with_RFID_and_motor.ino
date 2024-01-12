@@ -9,12 +9,12 @@ struct employee {
 
 #define SDA_PIN D8 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
 #define RST_PIN D0 //pin connected to RST on the RFID reader.
-// MISO <-> D6
-// MOSI <-> D7
-// SCK  <-> D5
-#define echoPin 3 //pin for echo on ultrasonic sensor.
-#define trigPin D4 //pin for trig on ultrasonic sensor.
-#define servoPin D3 //pin for orange wire on servo motor
+// SCK  <-> D5 (ESP8266), D14 (ESP32)
+// MISO <-> D6 (ESP8266), D12 (ESP32)
+// MOSI <-> D7 (ESP8266), D13 (ESP32)
+#define echoPin D4 //pin for echo on ultrasonic sensor.
+#define trigPin D2 //pin for trig on ultrasonic sensor.
+#define servoPin D27 //pin for orange wire on servo motor
 
 const int arrLength = 10;
 employee employees[arrLength];
