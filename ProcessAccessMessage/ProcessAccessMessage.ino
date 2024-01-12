@@ -5,8 +5,6 @@ struct employee{
   byte PIN[4];
 };
 
-
-
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
