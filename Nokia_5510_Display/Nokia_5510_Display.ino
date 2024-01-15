@@ -429,7 +429,7 @@ void setup() {
   lcd.begin();
   lcd.setContrast(60);
   lcd.clear();
-
+  
   // Display initial text
   lcd.setCursor(0, 0);
   lcd.print("Enter password");
