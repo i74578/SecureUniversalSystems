@@ -43,6 +43,17 @@ void printEmployeeStruct(struct employee employee){
     Serial.print("\n");
 }
 
+void sendLog(byte NUID[4],bool success){
+  String logPayload = success ? "1" : "0";
+  for (int i=0; i< 4; i++){
+    logPayload += String(NUID[i], HEX);
+  }
+  logPayload.toUpperCase();
+  Serial.print("Sending log entry: ");
+  Serial.println(logPayload);
+  client.publish("sus/logEntry", logPayload);
+}
+
 void onAccessListReceived(const String &payload){
   Serial.print("ACL:");
   Serial.println(payload);
@@ -69,6 +80,8 @@ void onAccessListReceived(const String &payload){
     //Print employee NUID and PIN
     printEmployeeStruct(ACL[i]);
   }
+
+  sendLog(ACL[0].NUID,true);
 }
 
 void setup() {
@@ -78,10 +91,19 @@ void setup() {
 void onConnectionEstablished() {
   client.subscribe("sus/accessList", onAccessListReceived);
   client.publish("sus/hello", "hello from entranceDoor");
-
 }
 
 void loop() {
-  client.loop();
+  for (int i=0;i<50;i++){
+    client.loop();
+    if(client.isConnected()){
+      if(i==0){
+        
+        //Serial.println("Sending log entry");
+        //client.publish("sus/logEntry", "0ABCDEF");
+      }
+    }
+    delay(100);
+  }
 }
 
