@@ -6,8 +6,8 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-#define SDA_PIN D8
-#define RST_PIN D0
+#define SDA_PIN 5
+#define RST_PIN 21
 // MISO <-> D6
 // MOSI <-> D7
 // SCK  <-> D5
