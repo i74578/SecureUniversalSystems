@@ -6,6 +6,8 @@ struct employee {
 #include <Servo.h>
 #include <SPI.h>
 #include <MFRC522.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_PCD8544.h>
 
 #define SDA_PIN 5 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
 #define RST_PIN 21 //pin connected to RST on the RFID reader.
@@ -15,15 +17,18 @@ struct employee {
 #define echoPin 4 //pin for echo on ultrasonic sensor.
 #define trigPin 2 //pin for trig on ultrasonic sensor.
 #define servoPin 27 //pin for orange wire on servo motor
+#define potPin 36 //pin for potentiometer
 
 const int arrLength = 10; //max number of employees
-employee employees[arrLength];
+employee employees[arrLength]; //array to hold all employees permitted entry
 MFRC522 rfid(SDA_PIN, RST_PIN); //instance of class that interfaces with the RFID reader.
 byte detectedNUID[4]; //byte array that will hold the NUID read by the RFID reader.
 Servo servo; //instance of class that interfaces with servo motor
-//MFRC522::MIFARE_Key key;
+int angle = 180; //current angle of the servo motor
+Adafruit_PCD8544 display = Adafruit_PCD8544(14, 13, 12, 15, 26); //to interface with Nokia display
+                                          //CLK DIN DC  CE  RST
+
 employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is scanned. It is then used by enterPIN() to see if the PIN matches.
-int angle = 0; //current angle of the door motor
 
 void setup() {
   Serial.begin(9600);
@@ -33,34 +38,43 @@ void setup() {
   servo.write(angle);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  Serial.println("Hello world!");
+  pinMode(potPin, INPUT_PULLUP);
+  Serial.println("Hello, world!");
+  display.begin();
+  display.clearDisplay();
+  display.setContrast(60);
+  display.setTextSize(1);
+  display.setCursor(0,0);
+  display.println("Hello, world!");
+  display.display();
   initArray();
   resetCurrentlyLoggingIn();
   byte myNuid[] = {0x91, 0x5D, 0xDE, 0x1D};
   addEmployee(myNuid, 1234);
-
+  delay(2000);
+  display.clearDisplay();
+  display.display();
+  Serial.println("setup() complete");
+  
   //testAccessControl();
 }
 
 void loop() {
-
-
-
   //proximity sensor checks:
-  if (distance() < 10) {
+  if (distance() < 7) {
     opendoor();
     delay(1000);
   }
-  if (distance() > 10) {
+  if (distance() > 7) {
     closedoor();
   }
 
-  if (!rfid.PICC_IsNewCardPresent()) //ignores rest of loop if no card is detected
+  if (!rfid.PICC_IsNewCardPresent()) { //ignores rest of loop if no card is detected
     return;
-
-  if (!rfid.PICC_ReadCardSerial()) //ignores rest of loop if the card isn't being read
+  }
+  if (!rfid.PICC_ReadCardSerial()) { //ignores rest of loop if the card isn't being read
     return;
-
+  }
   MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
   if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI && piccType != MFRC522::PICC_TYPE_MIFARE_1K && piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
     Serial.println(F("Your tag is not of type MIFARE Classic."));
@@ -202,13 +216,19 @@ void resetCurrentlyLoggingIn() {
 }
 
 void opendoor() {
-  angle = 180;
+  angle = 90;
   servo.write(angle);
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.print("Welcome!");
+  display.display();
 }
 
 void closedoor(){
-    angle = 0;
-    servo.write(angle);
+  angle = 180;
+  servo.write(angle);
+  display.clearDisplay();
+  display.display();
 }
 
 int distance() {
