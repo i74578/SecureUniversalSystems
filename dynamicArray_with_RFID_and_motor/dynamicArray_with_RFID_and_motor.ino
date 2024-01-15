@@ -7,14 +7,14 @@ struct employee {
 #include <SPI.h>
 #include <MFRC522.h>
 
-#define SDA_PIN D8 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
-#define RST_PIN D0 //pin connected to RST on the RFID reader.
+#define SDA_PIN 5 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
+#define RST_PIN 21 //pin connected to RST on the RFID reader.
 // SCK  <-> D5 (ESP8266), D14 (ESP32)
 // MISO <-> D6 (ESP8266), D12 (ESP32)
 // MOSI <-> D7 (ESP8266), D13 (ESP32)
-#define echoPin D4 //pin for echo on ultrasonic sensor.
-#define trigPin D2 //pin for trig on ultrasonic sensor.
-#define servoPin D27 //pin for orange wire on servo motor
+#define echoPin 4 //pin for echo on ultrasonic sensor.
+#define trigPin 2 //pin for trig on ultrasonic sensor.
+#define servoPin 27 //pin for orange wire on servo motor
 
 const int arrLength = 10;
 employee employees[arrLength];
@@ -22,10 +22,9 @@ employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is sc
 MFRC522 rfid(SDA_PIN, RST_PIN); //instance of class that interfaces with the RFID reader.
 byte detectedNUID[4]; //byte array that will hold the NUID read by the RFID reader.
 //MFRC522::MIFARE_Key key;
-float duration; //for distance calculation
+//float duration; //for distance calculation
 Servo servo; //instance of class that interfaces with servo motor
 int angle = 0; //current angle of the door motor
-
 
 void setup() {
   Serial.begin(9600);
