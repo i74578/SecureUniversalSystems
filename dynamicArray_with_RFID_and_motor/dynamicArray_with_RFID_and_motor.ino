@@ -9,43 +9,44 @@ struct employee {
 
 #define SDA_PIN 5 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
 #define RST_PIN 21 //pin connected to RST on the RFID reader.
-// SCK  <-> D5 (ESP8266), D14 (ESP32)
-// MISO <-> D6 (ESP8266), D12 (ESP32)
-// MOSI <-> D7 (ESP8266), D13 (ESP32)
+// SCK  <-> D5 (ESP8266), D18 (ESP32)
+// MISO <-> D6 (ESP8266), D19 (ESP32)
+// MOSI <-> D7 (ESP8266), D23 (ESP32)
 #define echoPin 4 //pin for echo on ultrasonic sensor.
 #define trigPin 2 //pin for trig on ultrasonic sensor.
 #define servoPin 27 //pin for orange wire on servo motor
 
-const int arrLength = 10;
+const int arrLength = 10; //max number of employees
 employee employees[arrLength];
-employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is scanned. It is then used by enterPIN() to see if the PIN matches.
 MFRC522 rfid(SDA_PIN, RST_PIN); //instance of class that interfaces with the RFID reader.
 byte detectedNUID[4]; //byte array that will hold the NUID read by the RFID reader.
-//MFRC522::MIFARE_Key key;
-//float duration; //for distance calculation
 Servo servo; //instance of class that interfaces with servo motor
+//MFRC522::MIFARE_Key key;
+employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is scanned. It is then used by enterPIN() to see if the PIN matches.
 int angle = 0; //current angle of the door motor
 
 void setup() {
   Serial.begin(9600);
   SPI.begin();      // Init SPI bus
   rfid.PCD_Init();  // Init MFRC522
-  Serial.println("Hello world!");
   servo.attach(servoPin);
   servo.write(angle);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  Serial.println("Hello again world!");
-  initArray(employees);
+  Serial.println("Hello world!");
+  initArray();
   resetCurrentlyLoggingIn();
   byte myNuid[] = {0x91, 0x5D, 0xDE, 0x1D};
-  addEmployee(employees, myNuid, 1234);
+  addEmployee(myNuid, 1234);
 
   //testAccessControl();
 }
 
 void loop() {
 
+
+
+  //proximity sensor checks:
   if (distance() < 10) {
     opendoor();
     delay(1000);
@@ -72,7 +73,7 @@ void loop() {
   Serial.print("Detected NUID: ");
   printHex(detectedNUID, 4);
   Serial.println();
-  if (startLogin(employees, detectedNUID)) {
+  if (startLogin(detectedNUID)) {
         Serial.println("Card accepted, enter PIN:");
       } else {
         Serial.println("Access denied");
@@ -97,51 +98,51 @@ void loop() {
   Serial.println("Timed out.");
 }
 
-void initArray(employee e[]) {
+void initArray() {
   for (int i = 0; i < arrLength; i++) {
-    e[i].NUID[0] = 0x00;
-    e[i].NUID[1] = 0x00;
-    e[i].NUID[2] = 0x00;
-    e[i].NUID[3] = 0x00;
-    e[i].PIN = 0;
+    employees[i].NUID[0] = 0x00;
+    employees[i].NUID[1] = 0x00;
+    employees[i].NUID[2] = 0x00;
+    employees[i].NUID[3] = 0x00;
+    employees[i].PIN = 0;
   }
 }
 
-void addEmployee(employee e[], byte newNUID[], int newPIN) {
+void addEmployee(byte newNUID[], int newPIN) {
   for (int i = 0; i < arrLength; i++) {
-    if (e[i].NUID[0] == 0x00 &&
-        e[i].NUID[1] == 0x00 &&
-        e[i].NUID[2] == 0x00 &&
-        e[i].NUID[3] == 0x00) {
+    if (employees[i].NUID[0] == 0x00 &&
+        employees[i].NUID[1] == 0x00 &&
+        employees[i].NUID[2] == 0x00 &&
+        employees[i].NUID[3] == 0x00) {
       // empty entry found
-      e[i].NUID[0] = newNUID[0];
-      e[i].NUID[1] = newNUID[1];
-      e[i].NUID[2] = newNUID[2];
-      e[i].NUID[3] = newNUID[3];
-      e[i].PIN = newPIN;
+      employees[i].NUID[0] = newNUID[0];
+      employees[i].NUID[1] = newNUID[1];
+      employees[i].NUID[2] = newNUID[2];
+      employees[i].NUID[3] = newNUID[3];
+      employees[i].PIN = newPIN;
       return;
     }
   }
 }
 
-void removeEmployee(employee e[], byte NUID[]) {
+void removeEmployee(byte NUID[]) {
   for (int i = 0; i < arrLength; i++) {
-    if (e[i].NUID[0] == NUID[0] &&
-        e[i].NUID[1] == NUID[1] &&
-        e[i].NUID[2] == NUID[2] &&
-        e[i].NUID[3] == NUID[3]) {
+    if (employees[i].NUID[0] == NUID[0] &&
+        employees[i].NUID[1] == NUID[1] &&
+        employees[i].NUID[2] == NUID[2] &&
+        employees[i].NUID[3] == NUID[3]) {
       // matching entry found
-      e[i].NUID[0] = 0x00;
-      e[i].NUID[1] = 0x00;
-      e[i].NUID[2] = 0x00;
-      e[i].NUID[3] = 0x00;
-      e[i].PIN = 0;
+      employees[i].NUID[0] = 0x00;
+      employees[i].NUID[1] = 0x00;
+      employees[i].NUID[2] = 0x00;
+      employees[i].NUID[3] = 0x00;
+      employees[i].PIN = 0;
       return;
     }
   }
 }
 
-bool startLogin(employee e[], byte NUID[]) {
+bool startLogin(byte NUID[]) {
 // When user has scanned their card and entered the NUID, the system checks whether it exists in the list of people with access.
 // If it does, this function returns true and sets currentlyLoggingIn to the matching employee, so that enterPIN() knows which PIN to 
 
@@ -155,11 +156,11 @@ bool startLogin(employee e[], byte NUID[]) {
   }
 
   for (int i = 0; i < arrLength; i++) {
-    if (e[i].NUID[0] == NUID[0] &&
-        e[i].NUID[1] == NUID[1] &&
-        e[i].NUID[2] == NUID[2] &&
-        e[i].NUID[3] == NUID[3]) {
-      currentlyLoggingIn = e[i];
+    if (employees[i].NUID[0] == NUID[0] &&
+        employees[i].NUID[1] == NUID[1] &&
+        employees[i].NUID[2] == NUID[2] &&
+        employees[i].NUID[3] == NUID[3]) {
+      currentlyLoggingIn = employees[i];
       return true;
     }
   }
@@ -211,7 +212,7 @@ void closedoor(){
 }
 
 int distance() {
-  // calculates distance from ultrasonic sensor.
+  // calculates distance from proximity sensor.
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
@@ -235,10 +236,10 @@ void testAccessControl() {
   byte UID1[] = {0x01, 0x02, 0x23, 0xFF};
   byte UID2[] = {0x21, 0xF2, 0xAB, 0xDD};
   byte UID3[] = {0x21, 0xF2, 0xAB, 0xDF};
-  addEmployee(employees, UID1, 1234);
-  addEmployee(employees, UID2, 5678);
+  addEmployee(UID1, 1234);
+  addEmployee(UID2, 5678);
 
-  if (startLogin(employees, UID1)) {
+  if (startLogin(UID1)) {
     Serial.println("(good) Employee succesfully added");
   } else {
     Serial.println("(bad) Something went wrong adding the employee");
@@ -250,7 +251,7 @@ void testAccessControl() {
     Serial.println("(bad) Employee entered wrong PIN");
   }
 
-  if (startLogin(employees, UID3)) {
+  if (startLogin(UID3)) {
     Serial.println("(bad) Non-employee was allowed entry");
   } else {
     Serial.println("(good) Non-employee not allowed entry");
@@ -262,7 +263,7 @@ void testAccessControl() {
     Serial.println("(good) No card, no entry");
   }
 
-  startLogin(employees, UID1);
+  startLogin(UID1);
   if (enterPIN(4321)) {
     Serial.println("(bad) Employee allowed access with wrong PIN ");
   } else {
