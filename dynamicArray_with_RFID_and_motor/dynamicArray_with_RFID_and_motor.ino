@@ -20,6 +20,7 @@ struct employee {
 #define potPin 36 //pin for potentiometer
 #define closeAngle 180
 #define openAngle 90
+#define triggerDistance 10
 
 const int arrLength = 10; //max number of employees
 employee employees[arrLength]; //array to hold all employees permitted entry
@@ -34,10 +35,10 @@ employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is sc
 
 void setup() {
   Serial.begin(9600);
-  SPI.begin();      // Init SPI bus
-  rfid.PCD_Init();  // Init MFRC522
+  SPI.begin();      // Init SPI bus for RFID reader
+  rfid.PCD_Init();  // Init MFRC522 RFID reader
   servo.attach(servoPin);
-  servo.write(angle);
+  servo.write(angle); //reset servo to close position
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(potPin, INPUT_PULLUP);
@@ -63,10 +64,10 @@ void setup() {
 
 void loop() {
   //proximity sensor checks:
-  if (distance() < 15 && angle != openAngle) {
+  if (distance() < triggerDistance && angle != openAngle) {
     opendoor();
     delay(1000);
-  } else if (distance() >= 15 && angle != closeAngle) {
+  } else if (distance() >= triggerDistance && angle != closeAngle) {
     closedoor();
   }
 
@@ -95,22 +96,62 @@ void loop() {
         return;
       }
   
-  int waitFor = 8000;
-  for (int i = 0; i < waitFor; i++) {
-    if (Serial.available() > 0) {
-      int enteredPIN = Serial.parseInt();
-      if (enterPIN(enteredPIN)) {
-        Serial.println("Access granted!");
-        opendoor();
-        delay(5000);
-      } else {
-        Serial.println("Wrong PIN");
+  //potentiometer time
+  int waitFor = 400; //time to adjust each digit before they're locked in 
+  byte enteredCode[4] = {0,0,0,0};
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < waitFor; j++) {
+      if (distance() < triggerDistance) { //interrupt the login process if the prox sensor is triggered from inside.
+        return;
       }
-      return;
+      int potInput = analogRead(potPin);
+      byte current_num = (byte) map(potInput,10,4095,0,9);
+      enteredCode[i] = current_num;
+      int progress = map(j, 0, waitFor, 0, 14); //progress bar
+      displayEnteredCode(enteredCode, i, progress);
+      delay(1);
     }
-    delay(1);
   }
-  Serial.println("Timed out.");
+  if (enteredCode[0] == 1 &&
+      enteredCode[1] == 2 &&
+      enteredCode[2] == 3 &&
+      enteredCode[3] == 4) {
+    Serial.println("Correct PIN");
+    opendoor();
+    delay(5000);
+  } else {
+    Serial.println("Incorrect PIN");
+    display.clearDisplay();
+    display.println("Incorrect PIN");
+    display.display();
+    delay(2000);
+    display.clearDisplay();
+    display.display();
+  }
+
+  
+  
+
+
+  // int waitFor = 8000;
+  // for (int i = 0; i < waitFor; i++) {
+  //   if (distance() < triggerDistance) {
+  //     return;
+  //   }
+  //   if (Serial.available() > 0) {
+  //     int enteredPIN = Serial.parseInt();
+  //     if (enterPIN(enteredPIN)) {
+  //       Serial.println("Access granted!");
+  //       opendoor();
+  //       delay(5000);
+  //     } else {
+  //       Serial.println("Wrong PIN");
+  //     }
+  //     return;
+  //   }
+  //   delay(1);
+  // }
+  // Serial.println("Timed out.");
 }
 
 void initArray() {
@@ -229,6 +270,67 @@ void closedoor(){
   angle = closeAngle;
   servo.write(angle);
   display.clearDisplay();
+  display.display();
+}
+
+void displayEnteredCode(byte digits[], byte currentByte, int progress) {
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.println("Enter PIN:");
+  if (currentByte == 0) {
+    display.print("[");
+    display.print(digits[0]);
+    display.print("]");
+    display.print(digits[1]);
+    display.print(" ");
+    display.print(digits[2]);
+    display.print(" ");
+    display.print(digits[3]);
+    display.println(" ");
+  } else if (currentByte == 1) {
+    display.print(" ");
+    display.print(digits[0]);
+    display.print("[");
+    display.print(digits[1]);
+    display.print("]");
+    display.print(digits[2]);
+    display.print(" ");
+    display.print(digits[3]);
+    display.println(" ");
+  } else if (currentByte == 2) {
+    display.print(" ");
+    display.print(digits[0]);
+    display.print(" ");
+    display.print(digits[1]);
+    display.print("[");
+    display.print(digits[2]);
+    display.print("]");
+    display.print(digits[3]);
+    display.println(" ");
+  } else if (currentByte == 3) {
+    display.print(" ");
+    display.print(digits[0]);
+    display.print(" ");
+    display.print(digits[1]);
+    display.print(" ");
+    display.print(digits[2]);
+    display.print("[");
+    display.print(digits[3]);
+    display.println("]");
+  } else {
+    display.print(" ");
+    display.print(digits[0]);
+    display.print(" ");
+    display.print(digits[1]);
+    display.print(" ");
+    display.print(digits[2]);
+    display.print(" ");
+    display.print(digits[3]);
+    display.println(" ");
+  }
+  for (int i = 0; i < progress; i++) {
+    display.print("-");
+  }
   display.display();
 }
 
