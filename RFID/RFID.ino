@@ -22,7 +22,7 @@ MFRC522::MIFARE_Key key;
 byte nuidPICC[4];
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   SPI.begin();      // Init SPI bus
   rfid.PCD_Init();  // Init MFRC522
   Serial.println();
