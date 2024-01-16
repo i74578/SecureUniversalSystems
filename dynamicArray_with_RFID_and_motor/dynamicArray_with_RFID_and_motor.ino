@@ -14,18 +14,20 @@ struct employee {
 // SCK  <-> D5 (ESP8266), D18 (ESP32)
 // MISO <-> D6 (ESP8266), D19 (ESP32)
 // MOSI <-> D7 (ESP8266), D23 (ESP32)
-#define echoPin 4 //pin for echo on ultrasonic sensor.
+#define echoPin 22 //pin for echo on ultrasonic sensor.
 #define trigPin 2 //pin for trig on ultrasonic sensor.
 #define servoPin 27 //pin for orange wire on servo motor
 #define potPin 36 //pin for potentiometer
+#define closeAngle 180
+#define openAngle 90
 
 const int arrLength = 10; //max number of employees
 employee employees[arrLength]; //array to hold all employees permitted entry
 MFRC522 rfid(SDA_PIN, RST_PIN); //instance of class that interfaces with the RFID reader.
 byte detectedNUID[4]; //byte array that will hold the NUID read by the RFID reader.
 Servo servo; //instance of class that interfaces with servo motor
-int angle = 180; //current angle of the servo motor
-Adafruit_PCD8544 display = Adafruit_PCD8544(14, 13, 12, 15, 26); //to interface with Nokia display
+int angle = closeAngle; //current angle of the servo motor
+Adafruit_PCD8544 display = Adafruit_PCD8544(14, 13, 4, 15, 26); //to interface with Nokia display
                                           //CLK DIN DC  CE  RST
 
 employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is scanned. It is then used by enterPIN() to see if the PIN matches.
@@ -61,11 +63,10 @@ void setup() {
 
 void loop() {
   //proximity sensor checks:
-  if (distance() < 7) {
+  if (distance() < 15 && angle != openAngle) {
     opendoor();
     delay(1000);
-  }
-  if (distance() > 7) {
+  } else if (distance() >= 15 && angle != closeAngle) {
     closedoor();
   }
 
@@ -216,7 +217,7 @@ void resetCurrentlyLoggingIn() {
 }
 
 void opendoor() {
-  angle = 90;
+  angle = openAngle;
   servo.write(angle);
   display.clearDisplay();
   display.setCursor(0,0);
@@ -225,7 +226,7 @@ void opendoor() {
 }
 
 void closedoor(){
-  angle = 180;
+  angle = closeAngle;
   servo.write(angle);
   display.clearDisplay();
   display.display();
