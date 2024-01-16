@@ -21,6 +21,9 @@ struct employee{
   byte PIN[4];
 };
 
+employee *ptr_ACL;
+byte ACL_count;
+
 
 void hexStr2Bytes (char * c_ar, byte b_ar[]){
   for (int i=0; i< 8; i+=2){
@@ -29,15 +32,15 @@ void hexStr2Bytes (char * c_ar, byte b_ar[]){
   }
 }
 
-void printEmployeeStruct(struct employee employee){
+void printEmployeeStruct(int ACLnum){
   Serial.print("Employee:\NNUID:");
     for (int j = 0; j < 4; j++){
-      Serial.print((int) employee.NUID[j]);
+      Serial.print((int) ptr_ACL[ACLnum].NUID[j]);
       Serial.print(" ");
     }
     Serial.print("\nPIN:");
     for (int j = 0; j < 4; j++){
-      Serial.print((char) employee.PIN[j]);
+      Serial.print((char) ptr_ACL[ACLnum].PIN[j]);
       Serial.print(" ");
     }
     Serial.print("\n");
@@ -60,7 +63,12 @@ void onAccessListReceived(const String &payload){
 
 
   int employeeCount = payload.substring(0,2).toInt();
-  employee ACL[employeeCount];
+
+  if (ptr_ACL != NULL) {
+    delete[] ptr_ACL;
+  }
+  ptr_ACL = new employee[employeeCount];
+  ACL_count = (byte) employeeCount;
 
   // Itterate for each employee in received message
   for(int i=0 ; i<employeeCount;i++){
@@ -68,20 +76,17 @@ void onAccessListReceived(const String &payload){
     //Extract NUID, and save to ACL
     char NUIDBuffer[9];
     payload.substring(2+12*i,10+12*i).toCharArray(NUIDBuffer, 9);
-    hexStr2Bytes(NUIDBuffer,ACL[i].NUID);
+    hexStr2Bytes(NUIDBuffer,ptr_ACL[i].NUID);
 
     //Extract PIN, and save to ACL
     char PINBuffer[5];
     payload.substring(10+12*i,14+12*i).toCharArray(PINBuffer, 5);
     for (int j=0;j<4;j++){
-      ACL[i].PIN[j] = PINBuffer[j];
+      ptr_ACL[i].PIN[j] = PINBuffer[j];
     }
-
-    //Print employee NUID and PIN
-    printEmployeeStruct(ACL[i]);
   }
 
-  sendLog(ACL[0].NUID,true);
+  //sendLog(ACL[0].NUID,true);
 }
 
 void setup() {
@@ -94,14 +99,13 @@ void onConnectionEstablished() {
 }
 
 void loop() {
+
+
+
   for (int i=0;i<50;i++){
     client.loop();
     if(client.isConnected()){
-      if(i==0){
-        
-        //Serial.println("Sending log entry");
-        //client.publish("sus/logEntry", "0ABCDEF");
-      }
+      //Do something
     }
     delay(100);
   }
