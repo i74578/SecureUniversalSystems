@@ -1,6 +1,6 @@
 struct employee {
   byte NUID[4] = {0x00, 0x00, 0x00, 0x00};
-  int PIN = 0000;
+  byte PIN[4] = {0, 0, 0, 0};
 };
 
 #include <Servo.h>
@@ -53,7 +53,8 @@ void setup() {
   initArray();
   resetCurrentlyLoggingIn();
   byte myNuid[] = {0x91, 0x5D, 0xDE, 0x1D};
-  addEmployee(myNuid, 1234);
+  byte myPIN[] = {1,2,3,4};
+  addEmployee(myNuid, myPIN);
   delay(2000);
   display.clearDisplay();
   display.display();
@@ -98,7 +99,7 @@ void loop() {
   
   //potentiometer time
   int waitFor = 400; //time to adjust each digit before they're locked in 
-  byte enteredCode[4] = {0,0,0,0};
+  byte enteredPIN[4] = {0,0,0,0};
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < waitFor; j++) {
       if (distance() < triggerDistance) { //interrupt the login process if the prox sensor is triggered from inside.
@@ -106,16 +107,13 @@ void loop() {
       }
       int potInput = analogRead(potPin);
       byte current_num = (byte) map(potInput,10,4095,0,9);
-      enteredCode[i] = current_num;
+      enteredPIN[i] = current_num;
       int progress = map(j, 0, waitFor, 0, 14); //progress bar
-      displayEnteredCode(enteredCode, i, progress);
+      displayEnteredPIN(enteredPIN, i, progress);
       delay(1);
     }
   }
-  if (enteredCode[0] == 1 &&
-      enteredCode[1] == 2 &&
-      enteredCode[2] == 3 &&
-      enteredCode[3] == 4) {
+  if (enterPIN(enteredPIN)) {
     Serial.println("Correct PIN");
     opendoor();
     delay(5000);
@@ -128,10 +126,6 @@ void loop() {
     display.clearDisplay();
     display.display();
   }
-
-  
-  
-
 
   // int waitFor = 8000;
   // for (int i = 0; i < waitFor; i++) {
@@ -160,11 +154,14 @@ void initArray() {
     employees[i].NUID[1] = 0x00;
     employees[i].NUID[2] = 0x00;
     employees[i].NUID[3] = 0x00;
-    employees[i].PIN = 0;
+    employees[i].PIN[0] = 0;
+    employees[i].PIN[1] = 0;
+    employees[i].PIN[2] = 0;
+    employees[i].PIN[3] = 0;
   }
 }
 
-void addEmployee(byte newNUID[], int newPIN) {
+void addEmployee(byte newNUID[], byte newPIN[]) {
   for (int i = 0; i < arrLength; i++) {
     if (employees[i].NUID[0] == 0x00 &&
         employees[i].NUID[1] == 0x00 &&
@@ -175,7 +172,10 @@ void addEmployee(byte newNUID[], int newPIN) {
       employees[i].NUID[1] = newNUID[1];
       employees[i].NUID[2] = newNUID[2];
       employees[i].NUID[3] = newNUID[3];
-      employees[i].PIN = newPIN;
+      employees[i].PIN[0] = newPIN[0];
+      employees[i].PIN[1] = newPIN[1];
+      employees[i].PIN[2] = newPIN[2];
+      employees[i].PIN[3] = newPIN[3];
       return;
     }
   }
@@ -192,7 +192,10 @@ void removeEmployee(byte NUID[]) {
       employees[i].NUID[1] = 0x00;
       employees[i].NUID[2] = 0x00;
       employees[i].NUID[3] = 0x00;
-      employees[i].PIN = 0;
+      employees[i].PIN[0] = 0;
+      employees[i].PIN[1] = 0;
+      employees[i].PIN[2] = 0;
+      employees[i].PIN[3] = 0;
       return;
     }
   }
@@ -224,7 +227,7 @@ bool startLogin(byte NUID[]) {
   return false;
 }
 
-bool enterPIN(int PIN) {
+bool enterPIN(byte enteredPIN[]) {
   // for when the user enters their PIN after scanning their card.
 
   if (currentlyLoggingIn.NUID[0] == 0x00 &&
@@ -235,7 +238,10 @@ bool enterPIN(int PIN) {
     return false;
   }
 
-  if (currentlyLoggingIn.PIN == PIN) {
+  if (currentlyLoggingIn.PIN[0] == enteredPIN[0] &&
+      currentlyLoggingIn.PIN[1] == enteredPIN[1] &&
+      currentlyLoggingIn.PIN[2] == enteredPIN[2] &&
+      currentlyLoggingIn.PIN[3] == enteredPIN[3]) {
     // entered PIN matches expectations.
     resetCurrentlyLoggingIn();
     return true;
@@ -253,7 +259,10 @@ void resetCurrentlyLoggingIn() {
   currentlyLoggingIn.NUID[1] = 0x00;
   currentlyLoggingIn.NUID[2] = 0x00;
   currentlyLoggingIn.NUID[3] = 0x00;
-  currentlyLoggingIn.PIN = 0;
+  currentlyLoggingIn.PIN[0] = 0;
+  currentlyLoggingIn.PIN[1] = 0;
+  currentlyLoggingIn.PIN[2] = 0;
+  currentlyLoggingIn.PIN[3] = 0;
 
 }
 
@@ -273,7 +282,7 @@ void closedoor(){
   display.display();
 }
 
-void displayEnteredCode(byte digits[], byte currentByte, int progress) {
+void displayEnteredPIN(byte digits[], byte currentByte, int progress) {
   display.clearDisplay();
   display.setCursor(0,0);
   display.println("Enter PIN:");
@@ -359,8 +368,10 @@ void testAccessControl() {
   byte UID1[] = {0x01, 0x02, 0x23, 0xFF};
   byte UID2[] = {0x21, 0xF2, 0xAB, 0xDD};
   byte UID3[] = {0x21, 0xF2, 0xAB, 0xDF};
-  addEmployee(UID1, 1234);
-  addEmployee(UID2, 5678);
+  byte PIN1[] = {1, 2, 3, 4};
+  byte PIN2[] = {5, 6, 7, 8};
+  addEmployee(UID1, PIN1);
+  addEmployee(UID2, PIN2);
 
   if (startLogin(UID1)) {
     Serial.println("(good) Employee succesfully added");
@@ -368,7 +379,7 @@ void testAccessControl() {
     Serial.println("(bad) Something went wrong adding the employee");
   }
 
-  if (enterPIN(1234)) {
+  if (enterPIN(PIN1)) {
     Serial.println("(good) Employee entered PIN succesfully");
   } else {
     Serial.println("(bad) Employee entered wrong PIN");
@@ -380,14 +391,14 @@ void testAccessControl() {
     Serial.println("(good) Non-employee not allowed entry");
   }
 
-  if (enterPIN(1234)) {
+  if (enterPIN(PIN1)) {
     Serial.println("(bad) Entry permitted even though no card was scanned");
   } else {
     Serial.println("(good) No card, no entry");
   }
 
   startLogin(UID1);
-  if (enterPIN(4321)) {
+  if (enterPIN(PIN1)) {
     Serial.println("(bad) Employee allowed access with wrong PIN ");
   } else {
     Serial.println("(good) Employee entered wrong PIN and not allowed access");
