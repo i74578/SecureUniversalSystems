@@ -21,16 +21,20 @@ struct employee{
   byte PIN[4];
 };
 
+//Access control list
+//Stores a pointer to a list of employee structes, which includes NUID and PIN for all employees with access
 employee *ptr_ACL;
 byte ACL_count;
 
-
-void hexStr2Bytes (char * c_ar, byte b_ar[]){
+// Converts a hex char array to a byte array. Example {'0','0','F','F'} -> {0,255}
+void hexStr2Bytes (char * HexCharArray, byte * byteArray){
   for (int i=0; i< 8; i+=2){
-    char tempstr[3] = {c_ar[i],c_ar[i+1]};  
-    b_ar[i/2] = (byte) strtol(tempstr,0, 16);
+    char tempstr[3] = {HexCharArray[i],HexCharArray[i+1]};  
+    byteArray[i/2] = (byte) strtol(tempstr,0, 16);
   }
 }
+
+
 
 void printEmployeeStruct(int ACLnum){
   Serial.print("Employee:\NNUID:");
@@ -46,6 +50,8 @@ void printEmployeeStruct(int ACLnum){
     Serial.print("\n");
 }
 
+// Sends a log message to the MQTT broker, with the 
+// employee NUID and if authentification was successful
 void sendLog(byte NUID[4],bool success){
   String logPayload = success ? "1" : "0";
   for (int i=0; i< 4; i++){
@@ -61,9 +67,9 @@ void onAccessListReceived(const String &payload){
   Serial.print("ACL:");
   Serial.println(payload);
 
-
   int employeeCount = payload.substring(0,2).toInt();
 
+  // Delete array pointed to by ptr_ACL and create a new struct array with each employee
   if (ptr_ACL != NULL) {
     delete[] ptr_ACL;
   }
@@ -85,8 +91,6 @@ void onAccessListReceived(const String &payload){
       ptr_ACL[i].PIN[j] = PINBuffer[j];
     }
   }
-
-  //sendLog(ACL[0].NUID,true);
 }
 
 void setup() {
@@ -99,9 +103,6 @@ void onConnectionEstablished() {
 }
 
 void loop() {
-
-
-
   for (int i=0;i<50;i++){
     client.loop();
     if(client.isConnected()){
