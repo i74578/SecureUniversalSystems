@@ -69,12 +69,20 @@ void setup() {
   delay(2000);
   display.clearDisplay();
   display.display();
+  client.setKeepAlive(30);
   Serial.println("setup() complete");
   
 }
 
 void loop() {
-  client.loop(); //check if MQTT broker has anything new
+  client.loop(); //check if MQTT broker has anything new / send updates to server
+  
+  if (!client.isMqttConnected()) {
+    Serial.println("MQTT disconnected!");
+  }
+  if (!client.isWifiConnected()) {
+    Serial.println("WiFi disconnected!");
+  }
 
   //proximity sensor checks:
   if (distance() < triggerDistance && angle != openAngle) {
@@ -166,7 +174,6 @@ bool startLogin(byte NUID[]) {
         ptr_ACL[i].NUID[2] == NUID[2] &&
         ptr_ACL[i].NUID[3] == NUID[3]) {
       currentlyLoggingIn = ptr_ACL[i];
-      sendLog(ptr_ACL[i].NUID, false);
       return true;
     }
   }
@@ -234,16 +241,27 @@ void sendLog(byte NUID[4], bool success){
   for (int i=0; i< 4; i++){
     logPayload += String(NUID[i], HEX);
   }
+
+  if (!client.isConnected()) {
+    Serial.println("Client disconnected while trying to send log!");
+    return;
+  }
   logPayload.toUpperCase();
   Serial.print("Sending log entry: ");
   Serial.println(logPayload);
+  client.loop();
   client.publish("sus/logEntry", logPayload);
+
 }
 
 void onAccessListReceived(const String &payload){
-  //When MQTT broker sends an updated access list
+  //When MQTT broker sends ,an updated access list
+  
+
   Serial.print("ACL:");
   Serial.println(payload);
+
+  
 
   int employeeCount = payload.substring(0,2).toInt();
 
@@ -269,9 +287,11 @@ void onAccessListReceived(const String &payload){
       ptr_ACL[i].PIN[j] = PINBuffer[j]-48; //quick conversion from char to decimal
     }
   }
+  sendLog(ptr_ACL[0].NUID,true);
 }
 
 void onConnectionEstablished() {
+  Serial.println("Hello to MQTT");
   client.subscribe("sus/accessList", onAccessListReceived);
   client.publish("sus/hello", "hello from entranceDoor");
 }
