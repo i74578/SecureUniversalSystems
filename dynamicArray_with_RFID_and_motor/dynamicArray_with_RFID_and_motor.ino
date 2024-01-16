@@ -75,7 +75,7 @@ void setup() {
 
 void loop() {
   client.loop(); //check if MQTT broker has anything new
-  
+
   //proximity sensor checks:
   if (distance() < triggerDistance && angle != openAngle) {
     opendoor();
@@ -130,94 +130,22 @@ void loop() {
   if (enterPIN(enteredPIN)) {
     Serial.println("Correct PIN");
     sendLog(currentlyLoggingIn.NUID, true);
-    resetCurrentlyLoggingIn();
     opendoor();
     delay(5000);
+    resetCurrentlyLoggingIn();
   } else {
     sendLog(currentlyLoggingIn.NUID, false);
-    resetCurrentlyLoggingIn();
     Serial.println("Incorrect PIN");
     display.clearDisplay();
     display.println("Incorrect PIN");
     display.display();
     delay(2000);
+    resetCurrentlyLoggingIn();
     display.clearDisplay();
     display.display();
   }
 
-  // int waitFor = 8000;
-  // for (int i = 0; i < waitFor; i++) {
-  //   if (distance() < triggerDistance) {
-  //     return;
-  //   }
-  //   if (Serial.available() > 0) {
-  //     int enteredPIN = Serial.parseInt();
-  //     if (enterPIN(enteredPIN)) {
-  //       Serial.println("Access granted!");
-  //       opendoor();
-  //       delay(5000);
-  //     } else {
-  //       Serial.println("Wrong PIN");
-  //     }
-  //     return;
-  //   }
-  //   delay(1);
-  // }
-  // Serial.println("Timed out.");
 }
-
-// void initArray() {
-//   for (int i = 0; i < arrLength; i++) {
-//     employees[i].NUID[0] = 0x00;
-//     employees[i].NUID[1] = 0x00;
-//     employees[i].NUID[2] = 0x00;
-//     employees[i].NUID[3] = 0x00;
-//     employees[i].PIN[0] = 0;
-//     employees[i].PIN[1] = 0;
-//     employees[i].PIN[2] = 0;
-//     employees[i].PIN[3] = 0;
-//   }
-// }
-
-// void addEmployee(byte newNUID[], byte newPIN[]) {
-//   for (int i = 0; i < arrLength; i++) {
-//     if (employees[i].NUID[0] == 0x00 &&
-//         employees[i].NUID[1] == 0x00 &&
-//         employees[i].NUID[2] == 0x00 &&
-//         employees[i].NUID[3] == 0x00) {
-//       // empty entry found
-//       employees[i].NUID[0] = newNUID[0];
-//       employees[i].NUID[1] = newNUID[1];
-//       employees[i].NUID[2] = newNUID[2];
-//       employees[i].NUID[3] = newNUID[3];
-//       employees[i].PIN[0] = newPIN[0];
-//       employees[i].PIN[1] = newPIN[1];
-//       employees[i].PIN[2] = newPIN[2];
-//       employees[i].PIN[3] = newPIN[3];
-//       return;
-//     }
-//   }
-// }
-
-// void removeEmployee(byte NUID[]) {
-//   for (int i = 0; i < arrLength; i++) {
-//     if (employees[i].NUID[0] == NUID[0] &&
-//         employees[i].NUID[1] == NUID[1] &&
-//         employees[i].NUID[2] == NUID[2] &&
-//         employees[i].NUID[3] == NUID[3]) {
-//       // matching entry found
-//       employees[i].NUID[0] = 0x00;
-//       employees[i].NUID[1] = 0x00;
-//       employees[i].NUID[2] = 0x00;
-//       employees[i].NUID[3] = 0x00;
-//       employees[i].PIN[0] = 0;
-//       employees[i].PIN[1] = 0;
-//       employees[i].PIN[2] = 0;
-//       employees[i].PIN[3] = 0;
-//       return;
-//     }
-//   }
-// }
 
 bool startLogin(byte NUID[]) {
 // When user has scanned their card and entered the NUID, the system checks whether it exists in the list of people with access.
@@ -238,6 +166,7 @@ bool startLogin(byte NUID[]) {
         ptr_ACL[i].NUID[2] == NUID[2] &&
         ptr_ACL[i].NUID[3] == NUID[3]) {
       currentlyLoggingIn = ptr_ACL[i];
+      sendLog(ptr_ACL[i].NUID, false);
       return true;
     }
   }
@@ -261,10 +190,8 @@ bool enterPIN(byte enteredPIN[]) {
       currentlyLoggingIn.PIN[2] == enteredPIN[2] &&
       currentlyLoggingIn.PIN[3] == enteredPIN[3]) {
     // entered PIN matches expectations.
-    resetCurrentlyLoggingIn();
     return true;
   } else {
-    resetCurrentlyLoggingIn();
     return false;
   }
 
@@ -358,51 +285,51 @@ void displayEnteredPIN(byte digits[], byte currentByte, int progress) {
   if (currentByte == 0) {
     display.print("[");
     display.print(digits[0]);
-    display.print("]");
+    display.print("] ");
     display.print(digits[1]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[2]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[3]);
     display.println(" ");
   } else if (currentByte == 1) {
     display.print(" ");
     display.print(digits[0]);
-    display.print("[");
+    display.print(" [");
     display.print(digits[1]);
-    display.print("]");
+    display.print("] ");
     display.print(digits[2]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[3]);
     display.println(" ");
   } else if (currentByte == 2) {
     display.print(" ");
     display.print(digits[0]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[1]);
-    display.print("[");
+    display.print(" [");
     display.print(digits[2]);
-    display.print("]");
+    display.print("] ");
     display.print(digits[3]);
     display.println(" ");
   } else if (currentByte == 3) {
     display.print(" ");
     display.print(digits[0]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[1]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[2]);
-    display.print("[");
+    display.print(" [");
     display.print(digits[3]);
     display.println("]");
   } else {
     display.print(" ");
     display.print(digits[0]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[1]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[2]);
-    display.print(" ");
+    display.print("  ");
     display.print(digits[3]);
     display.println(" ");
   }
@@ -454,45 +381,3 @@ void printEmployeeStruct(int ACLnum){
     }
     Serial.print("\n");
 }
-
-// void testAccessControl() {
-//   // Tests:
-//   byte UID1[] = {0x01, 0x02, 0x23, 0xFF};
-//   byte UID2[] = {0x21, 0xF2, 0xAB, 0xDD};
-//   byte UID3[] = {0x21, 0xF2, 0xAB, 0xDF};
-//   byte PIN1[] = {1, 2, 3, 4};
-//   byte PIN2[] = {5, 6, 7, 8};
-//   addEmployee(UID1, PIN1);
-//   addEmployee(UID2, PIN2);
-
-//   if (startLogin(UID1)) {
-//     Serial.println("(good) Employee succesfully added");
-//   } else {
-//     Serial.println("(bad) Something went wrong adding the employee");
-//   }
-
-//   if (enterPIN(PIN1)) {
-//     Serial.println("(good) Employee entered PIN succesfully");
-//   } else {
-//     Serial.println("(bad) Employee entered wrong PIN");
-//   }
-
-//   if (startLogin(UID3)) {
-//     Serial.println("(bad) Non-employee was allowed entry");
-//   } else {
-//     Serial.println("(good) Non-employee not allowed entry");
-//   }
-
-//   if (enterPIN(PIN1)) {
-//     Serial.println("(bad) Entry permitted even though no card was scanned");
-//   } else {
-//     Serial.println("(good) No card, no entry");
-//   }
-
-//   startLogin(UID1);
-//   if (enterPIN(PIN1)) {
-//     Serial.println("(bad) Employee allowed access with wrong PIN ");
-//   } else {
-//     Serial.println("(good) Employee entered wrong PIN and not allowed access");
-//   }
-// }
