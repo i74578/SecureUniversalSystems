@@ -10,33 +10,30 @@ struct employee {
 #include <Adafruit_PCD8544.h>
 #include "EspMQTTClient.h"
 
-#define SDA_PIN 5 //pin on ESP8266 connected to SDA on the RC522 RFID reader.
-#define RST_PIN 21 //pin connected to RST on the RFID reader.
+#define SDA_PIN 5 // pin on ESP8266 connected to SDA on the RC522 RFID reader.
+#define RST_PIN 21 // pin connected to RST on the RFID reader.
 // SCK  <-> D5 (ESP8266), D18 (ESP32)
 // MISO <-> D6 (ESP8266), D19 (ESP32)
 // MOSI <-> D7 (ESP8266), D23 (ESP32)
-#define echoPin 22 //pin for echo on ultrasonic sensor.
-#define trigPin 2 //pin for trig on ultrasonic sensor.
-#define servoPin 27 //pin for orange wire on servo motor
-#define potPin 36 //pin for potentiometer
+#define echoPin 22 // pin for echo on ultrasonic sensor.
+#define trigPin 2 // pin for trig on ultrasonic sensor.
+#define servoPin 27 // pin for orange wire on servo motor
+#define potPin 36 // pin for potentiometer
 #define closeAngle 180
 #define openAngle 90
-#define triggerDistance 10
+#define triggerDistance 7
 
-// const int arrLength = 10; //max number of employees
-// employee employees[arrLength]; //array to hold all employees permitted entry
-employee *ptr_ACL; //Access Control List, stores a pointer to a list of Employee structs.
+employee *ptr_ACL; // Access Control List, stores a pointer to a list of Employee structs.
 byte ACL_count;
-MFRC522 rfid(SDA_PIN, RST_PIN); //instance of class that interfaces with the RFID reader.
-byte detectedNUID[4]; //byte array that will hold the NUID read by the RFID reader.
-Servo servo; //instance of class that interfaces with servo motor
-int angle = closeAngle; //current angle of the servo motor
-Adafruit_PCD8544 display = Adafruit_PCD8544(14, 13, 4, 15, 26); //to interface with Nokia display
-                                          //CLK DIN DC  CE  RST
-employee currentlyLoggingIn; //this is set by startLogin() when a valid ID is scanned. It is then used by enterPIN() to see if the PIN matches.
-EspMQTTClient client( //MQTT client to communicate with server
-  "KelvinPelvin",
-  "PelvinKelvin",
+MFRC522 rfid(SDA_PIN, RST_PIN); // instance of class that interfaces with the RFID reader.
+byte detectedNUID[4]; // byte array that will hold the NUID read by the RFID reader.
+Servo servo; // instance of class that interfaces with servo motor
+int angle = closeAngle; // current angle of the servo motor
+Adafruit_PCD8544 display = Adafruit_PCD8544(14, 13, 4, 15, 26); // to interface with Nokia display (CLK, DIN, DC, CE, RST)
+employee currentlyLoggingIn; // this is set by startLogin() when a valid ID is scanned. It is then used by enterPIN() to see if the PIN matches.
+EspMQTTClient client( // MQTT client to communicate with server
+  "KelvinPelvin", // WiFi name and password
+  "PelvinKelvin", 
   "142.93.105.52",  // MQTT Broker server ip
   "entranceDoor",   // Can be omitted if not needed
   "VMN2rLa8aloFFQ3",   // Can be omitted if not needed
@@ -49,7 +46,7 @@ void setup() {
   SPI.begin();      // Init SPI bus for RFID reader
   rfid.PCD_Init();  // Init MFRC522 RFID reader
   servo.attach(servoPin);
-  servo.write(angle); //reset servo to close position
+  servo.write(angle); // reset servo to close position
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(potPin, INPUT_PULLUP);
@@ -61,21 +58,16 @@ void setup() {
   display.setCursor(0,0);
   display.println("Hello, world!");
   display.display();
-  // initArray();
   resetCurrentlyLoggingIn();
-  byte myNuid[] = {0x91, 0x5D, 0xDE, 0x1D};
-  byte myPIN[] = {1,2,3,4};
-  // addEmployee(myNuid, myPIN);
   delay(2000);
   display.clearDisplay();
   display.display();
   client.setKeepAlive(30);
   Serial.println("setup() complete");
-  
 }
 
 void loop() {
-  client.loop(); //check if MQTT broker has anything new / send updates to server
+  client.loop(); // check if MQTT broker has anything new / send updates to server
   
   if (!client.isMqttConnected()) {
     Serial.println("MQTT disconnected!");
@@ -92,11 +84,11 @@ void loop() {
     closedoor();
   }
 
-  //RFID reader checks:
-  if (!rfid.PICC_IsNewCardPresent()) { //ignores rest of loop if no card is detected
+  // RFID reader checks:
+  if (!rfid.PICC_IsNewCardPresent()) { // ignores rest of loop if no card is detected
     return;
   }
-  if (!rfid.PICC_ReadCardSerial()) { //ignores rest of loop if the card isn't being read
+  if (!rfid.PICC_ReadCardSerial()) { // ignores rest of loop if the card isn't being read
     return;
   }
   MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
@@ -124,13 +116,13 @@ void loop() {
         return;
       }
   
-  //card accepted, now to enter PIN with the potentiometer:
-  int waitFor = 4000; //time to adjust each digit before they're locked in 
+  // card accepted, now to enter PIN with the potentiometer:
+  int waitFor = 4000; // time to adjust each digit before they're locked in 
   byte enteredPIN[4] = {0,0,0,0};
   for (int i = 0; i < 4; i++) {
-    long startMillis = millis(); //when the loop for the current digit started
+    long startMillis = millis(); // when the loop for the current digit started
     while (millis() - startMillis < waitFor) {
-      if (distance() < triggerDistance) { //interrupt the login process if the prox sensor is triggered from inside.
+      if (distance() < triggerDistance) { // interrupt the login process if the prox sensor is triggered from inside.
         return;
       }
       int potInput = analogRead(potPin);
@@ -163,7 +155,7 @@ void loop() {
 
 bool startLogin(byte NUID[]) {
 // When user has scanned their card and entered the NUID, the system checks whether it exists in the list of people with access.
-// If it does, this function returns true and sets currentlyLoggingIn to the matching employee, so that enterPIN() knows which PIN to 
+// If it does, this function returns true and sets currentlyLoggingIn to the matching employee, so that enterPIN() knows which PIN to check against. 
 
   if (NUID[0] == 0x00 &&
       NUID[1] == 0x00 &&
