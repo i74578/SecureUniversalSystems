@@ -1,9 +1,9 @@
 #include "EspMQTTClient.h"
 /*
-liste af categorier
-acceslist: server sender liste ved ændringer. Sender suid og pin server -> arduino
-hello:     arduino starter op og sender hello til server som sender acceslist via acceslist           arduino ->server
-logentry:  sender log info          arduino -> server
+list of categories
+acceslist: server sends a list when there is a change. It sends suid and pin to the ESP32. Server --> ESP32
+hello:     ESP32 starts by sending Hello to the server who send the acceslist. ESP32 --> Server
+logentry:  Sends the log info.          ESP32 --> server
 
 */
 EspMQTTClient client(
