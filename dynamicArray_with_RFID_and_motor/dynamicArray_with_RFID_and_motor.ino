@@ -115,6 +115,12 @@ void loop() {
         Serial.println("Card accepted, enter PIN:");
       } else {
         Serial.println("Access denied");
+        display.clearDisplay();
+        display.println("Access denied");
+        display.display();
+        delay(2000);
+        display.clearDisplay();
+        display.display();
         return;
       }
   
@@ -287,7 +293,6 @@ void onAccessListReceived(const String &payload){
       ptr_ACL[i].PIN[j] = PINBuffer[j]-48; //quick conversion from char to decimal
     }
   }
-  sendLog(ptr_ACL[0].NUID,true);
 }
 
 void onConnectionEstablished() {
