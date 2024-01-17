@@ -100,15 +100,17 @@ void setup() {
 void onConnectionEstablished() {
   client.subscribe("sus/accessList", onAccessListReceived);
   client.publish("sus/hello", "hello from entranceDoor");
+  client.publish("sus/helloTest", "Initial");
 }
 
 void loop() {
-  for (int i=0;i<50;i++){
-    client.loop();
-    if(client.isConnected()){
-      //Do something
-    }
-    delay(100);
+  client.loop();
+  if(client.isConnected()){
+    Serial.println("Sending");
+    client.publish("sus/logTest", "test");
+    delay(30000);
   }
+  delay(100);
+
 }
 
