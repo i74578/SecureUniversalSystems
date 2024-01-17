@@ -13,6 +13,7 @@ byte enteredPassword[4]; //user entered
 byte temp_num = 20;
 bool allowed_acces = true;
 bool locked = true; 
+
 void setup() {
   // Serial setup
   Serial.begin(15200);
