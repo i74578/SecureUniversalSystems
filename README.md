@@ -4,7 +4,7 @@ This is the source for the [secureuniversal.systems website] (https://secureuniv
 
 ## MainCode
 
-The MainCode contains the C-code we have used on our ESP32-module. The code contains all the pins for the ESP and how they work together. It also contains all our functions and libraries we use to control the different sensors and motor. 
+The MainCode contains the C-code we have used on our ESP32-module. The code contains all the pins for the ESP and how they work together. It also contains all our functions and libraries we use to control the different sensors and motor. The MainCode is a result of all the things in the "Unused" folder that we have implemented and actually used in our project. 
 
 ## Unused
 
