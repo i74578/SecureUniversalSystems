@@ -170,15 +170,6 @@ bool startLogin(byte NUID[]) {
 // When user has scanned their card and entered the NUID, the system checks whether it exists in the list of people with access.
 // If it does, this function returns true and sets currentlyLoggingIn to the matching employee, so that enterPIN() knows which PIN to check against. 
 
-  if (NUID[0] == 0x00 &&
-      NUID[1] == 0x00 &&
-      NUID[2] == 0x00 &&
-      NUID[3] == 0x00) {
-    // 00 00 00 00 is used for empty entries in the list, so it's not a valid NUID in our case.
-    resetCurrentlyLoggingIn();
-    return false;
-  }
-
   for (int i = 0; i < ACL_count; i++) {
     if (ptr_ACL[i].NUID[0] == NUID[0] &&
         ptr_ACL[i].NUID[1] == NUID[1] &&
@@ -194,14 +185,6 @@ bool startLogin(byte NUID[]) {
 
 bool enterPIN(byte enteredPIN[]) {
   // for when the user enters their PIN after scanning their card.
-
-  if (currentlyLoggingIn.NUID[0] == 0x00 &&
-      currentlyLoggingIn.NUID[1] == 0x00 &&
-      currentlyLoggingIn.NUID[2] == 0x00 &&
-      currentlyLoggingIn.NUID[3] == 0x00) {
-    // nobody is currently trying to log in.
-    return false;
-  }
 
   if (currentlyLoggingIn.PIN[0] == enteredPIN[0] &&
       currentlyLoggingIn.PIN[1] == enteredPIN[1] &&
