@@ -72,10 +72,13 @@ void setup() {
 }
 
 void loop() {
-  client.loop(); // check if MQTT broker has anything new
   
+  // MQTT checks:
+  client.loop(); // check if MQTT broker has anything new
+
   if (!client.isMqttConnected()) {
-    Serial.println("MQTT disconnected!");
+    // program can still run with the latest received info if connection is lost, so this is mostly a debug tool/warning
+    Serial.println("MQTT disconnected!"); 
   }
   if (!client.isWifiConnected()) {
     Serial.println("WiFi disconnected!");
@@ -90,13 +93,13 @@ void loop() {
   }
 
   // RFID reader checks:
-  if (!rfid.PICC_IsNewCardPresent()) { // ignores rest of loop if no card is detected
+  if (!rfid.PICC_IsNewCardPresent()) { // resets to beginning of the loop if no card is detected
     return;
   }
-  if (!rfid.PICC_ReadCardSerial()) { // ignores rest of loop if the card isn't being read
+  if (!rfid.PICC_ReadCardSerial()) { // resets to beginning of the loop if the card isn't being read
     return;
   }
-  MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
+  MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak); // resets to beginning of the loop if the card isn't of the correct type
   if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI && piccType != MFRC522::PICC_TYPE_MIFARE_1K && piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
     Serial.println(F("Your tag is not of type MIFARE Classic."));
     return;
