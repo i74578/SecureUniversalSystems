@@ -289,61 +289,22 @@ void onAccessListReceived(const String &payload){
 
 // helper functions:
 
-void displayEnteredPIN(byte digits[], byte currentByte, int progress) {
+void displayEnteredPIN(byte digits[], byte currentDigit, int progress) {
   // used to show text and numbers on the display while user is entering their PIN with potentiometer.
   display.clearDisplay();
   display.setCursor(0,0);
   display.println("Enter PIN:");
-  if (currentByte == 0) {
-    display.print("[");
-    display.print(digits[0]);
-    display.print("] ");
-    display.print(digits[1]);
-    display.print("  ");
-    display.print(digits[2]);
-    display.print("  ");
-    display.print(digits[3]);
-    display.println(" ");
-  } else if (currentByte == 1) {
-    display.print(" ");
-    display.print(digits[0]);
-    display.print(" [");
-    display.print(digits[1]);
-    display.print("] ");
-    display.print(digits[2]);
-    display.print("  ");
-    display.print(digits[3]);
-    display.println(" ");
-  } else if (currentByte == 2) {
-    display.print(" ");
-    display.print(digits[0]);
-    display.print("  ");
-    display.print(digits[1]);
-    display.print(" [");
-    display.print(digits[2]);
-    display.print("] ");
-    display.print(digits[3]);
-    display.println(" ");
-  } else if (currentByte == 3) {
-    display.print(" ");
-    display.print(digits[0]);
-    display.print("  ");
-    display.print(digits[1]);
-    display.print("  ");
-    display.print(digits[2]);
-    display.print(" [");
-    display.print(digits[3]);
-    display.println("]");
+  // place [brackets] around the currently active number
+  if (currentDigit == 0) {
+    display.println("["+String(digits[0])+"] "+String(digits[1])+"  "+String(digits[2])+"  "+String(digits[3])+" ");
+  } else if (currentDigit == 1) {
+    display.println(" "+String(digits[0])+" ["+String(digits[1])+"] "+String(digits[2])+"  "+String(digits[3])+" ");
+  } else if (currentDigit == 2) {
+    display.println(" "+String(digits[0])+"  "+String(digits[1])+" ["+String(digits[2])+"] "+String(digits[3])+" ");
+  } else if (currentDigit == 3) {
+    display.println(" "+String(digits[0])+"  "+String(digits[1])+"  "+String(digits[2])+" ["+String(digits[3])+"]");
   } else {
-    display.print(" ");
-    display.print(digits[0]);
-    display.print("  ");
-    display.print(digits[1]);
-    display.print("  ");
-    display.print(digits[2]);
-    display.print("  ");
-    display.print(digits[3]);
-    display.println(" ");
+    display.println(" "+String(digits[0])+"  "+String(digits[1])+"  "+String(digits[2])+"  "+String(digits[3])+" ");
   }
   for (int i = 0; i < progress; i++) {
     display.print("-");
