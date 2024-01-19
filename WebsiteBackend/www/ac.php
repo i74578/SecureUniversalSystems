@@ -1,18 +1,15 @@
 <?php
-// Initialize the session
+// Only allow user to access this page if they are logged in, otherwise redirect to login page
 session_start();
-
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
     exit;
 }
-
-// Include config file
+//Connect to DB
 require_once "config.php";
 ?>
 <!DOCTYPE html>
 <html data-bs-theme="light" lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
@@ -21,7 +18,6 @@ require_once "config.php";
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
     <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
 </head>
-
 <body id="page-top">
     <div id="wrapper">
         <nav class="navbar align-items-start sidebar sidebar-dark accordion p-0 navbar-dark" style="background-color: #006972;">
@@ -57,17 +53,14 @@ require_once "config.php";
                                         </tr>
                                     </thead>
                                     <tbody>
-
-
                                         <?php
-                                            $doorToCheck = 1;
-                                            $sql = "SELECT employees.id, employees.name, IF(dooraccess.employeeID IS NULL, FALSE, TRUE) as hasAccess FROM employees LEFT JOIN dooraccess ON (employees.id = dooraccess.employeeID AND dooraccess.doorID=1)";
+                                            // Get all employees and their access status, and echo them as table rows with checkboxes
+                                            $sql = "SELECT employees.id, employees.name, IF(dooraccess.employeeID IS NULL, FALSE, TRUE) as hasAccess FROM employees LEFT JOIN dooraccess ON (employees.id = dooraccess.employeeID)";
                                             $result = $db->query($sql);
-                                            
                                             if ($result->num_rows > 0) {
                                                 while($row = $result->fetch_assoc()) {
                                                     echo "<tr><td>" . $row["name"] . "</td>";
-                                                    echo '<td><div class="form-check form-switch"><input class="form-check-input access-checkbox" type="checkbox" name="'.$doorToCheck.'_'.$row['id'].'" ';
+                                                    echo '<td><div class="form-check form-switch"><input class="form-check-input access-checkbox" type="checkbox" name="'.$row['id'].'" ';
                                                     if ($row["hasAccess"] == '1') echo "checked";
                                                     echo "></div></td>";
                                                 }
@@ -86,8 +79,8 @@ require_once "config.php";
     <script src="assets/js/bs-init.js"></script>
     <script src="assets/js/theme.js"></script>
     <script>
-        
-        function updateAccess(doorID_input,employeeID_input,access_input){
+        // Send HTTP POST request to server with employeeID and access value
+        function updateAccess(employeeID_input,access_input){
             fetch("https://secureuniversal.systems/setAccess.php", {
                 method: "POST",
                 headers: {
@@ -95,26 +88,23 @@ require_once "config.php";
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    doorID: doorID_input,
                     employeeID: employeeID_input,
                     access: access_input
                 })
             });
         }
 
+        // Handler to all checkboxes
+        // Extract access value and employeeID, and send to updateAccess
         checkboxes = document.getElementsByClassName('access-checkbox');
         for (var i=0;i<checkboxes.length;i++) {
             var checkbox = checkboxes[i];
             checkbox.addEventListener('change', (event) => {
                 console.log(event.target.name + ", checked:" + event.target.checked);
-                doorIDandEmployeeID = event.target.name.split("_");
-                updateAccess(parseInt(doorIDandEmployeeID[0]),parseInt(doorIDandEmployeeID[1]),event.target.checked)
+                employeeID = event.target.name;
+                updateAccess(parseInt(employeeID),event.target.checked)
             });
         }
-
-
-
     </script>
 </body>
-
 </html>

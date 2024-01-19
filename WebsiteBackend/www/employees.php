@@ -1,13 +1,11 @@
 <?php
-// Initialize the session
+// Only allow user to access this page if they are logged in, otherwise redirect to login page
 session_start();
-
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
     exit;
 }
-
-// Include config file
+//Connect to DB
 require_once "config.php";
 ?>
 <!DOCTYPE html>
@@ -59,36 +57,27 @@ require_once "config.php";
                                         </tr>
                                     </thead>
                                     <tbody>
-
-
                                         <?php
-                                            $doorToCheck = 1;
+                                            // Execute SQL query to get employees and their attributes, and then echo it as a table row
                                             $sql = "SELECT employees.id, employees.name, employees.nuid,employees.pin FROM employees";
                                             $result = $db->query($sql);
-                                            
                                             if ($result->num_rows > 0) {
                                                 while($row = $result->fetch_assoc()) {
                                                     echo "<tr>";
-
                                                     echo '<td>';
                                                     echo '<input type="hidden" class="employeeIDField" value="'.$row['id'].'">';
                                                     echo '<input value="'.$row['name'].'"type="text" class="form-control employeeNameField" aria-label="PIN" aria-describedby="basic-addon2">';
                                                     echo '</td>';
-
                                                     echo '<td>';
                                                     echo '<input name="employeePin" value="'.$row['pin'].'"type="text" class="form-control employeePinField" aria-label="PIN" aria-describedby="basic-addon2">';
                                                     echo '</td>';
-                                                    
                                                     echo '<td>';
                                                     echo '<input name="employeeNuid" value="'.$row['nuid'].'"type="text" class="form-control employeeNuidField" aria-label="NUID" aria-describedby="basic-addon2">';
                                                     echo '</td>';
-
                                                     echo '<td>';
                                                     echo '<button class="btn btn-danger employee-remove" type="button"><i class="far fa-trash-alt"></i></button>';
                                                     echo '<button class="btn btn-success employee-update" type="button" style="margin-left: 10px;"><i class="far fa-save"></i></button>';
-                                                    echo "</tr>";
-
-                                                    
+                                                    echo "</td>";
                                                     echo "</tr>";
                                                 }
                                             }
@@ -108,7 +97,7 @@ require_once "config.php";
     <script src="assets/js/theme.js"></script>
     <script>
         
-
+        //Send POST request to add employee
         async function addEmployee(){
             await fetch("https://secureuniversal.systems/setEmployee.php", {
                 method: "POST",
@@ -123,6 +112,7 @@ require_once "config.php";
             await location.reload();
         }
 
+        //Send POST request to remove employee
         async function removeEmployee(id){
             await fetch("https://secureuniversal.systems/setEmployee.php", {
                 method: "POST",
@@ -138,6 +128,7 @@ require_once "config.php";
             await location.reload();
         }
 
+        //Send POST request to update employee
         async function updateEmployee(id,name,pin,nuid){
             await fetch("https://secureuniversal.systems/setEmployee.php", {
                 method: "POST",
@@ -156,6 +147,8 @@ require_once "config.php";
             await location.reload();
         }
 
+        //Handler for when remove entry button is clicked
+        //Extract relevant data from row and send it to removeEmployee()
         removeEmployeeBtns = document.getElementsByClassName('employee-remove');
         for (var i=0;i<removeEmployeeBtns.length;i++) {
             var btn = removeEmployeeBtns[i];
@@ -166,6 +159,8 @@ require_once "config.php";
             });
         }
 
+        //Handler for when remove entry button is clicked
+        //Extract relevant data from row and send it to updateEmployee()
         updateEmployeeBtns = document.getElementsByClassName('employee-update');
         for (var i=0;i<updateEmployeeBtns.length;i++) {
             var btn = updateEmployeeBtns[i];
@@ -180,5 +175,4 @@ require_once "config.php";
         }
     </script>
 </body>
-
 </html>

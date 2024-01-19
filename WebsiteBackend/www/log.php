@@ -1,18 +1,15 @@
 <?php
-// Initialize the session
+// Only allow user to access this page if they are logged in, otherwise redirect to login page
 session_start();
-
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
     exit;
 }
-
-// Include config file
+//Connect to DB
 require_once "config.php";
 ?>
 <!DOCTYPE html>
 <html data-bs-theme="light" lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
@@ -21,7 +18,6 @@ require_once "config.php";
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
     <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
 </head>
-
 <body id="page-top">
     <div id="wrapper">
         <nav class="navbar align-items-start sidebar sidebar-dark accordion p-0 navbar-dark" style="background-color: #006972;">
@@ -60,13 +56,15 @@ require_once "config.php";
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "SELECT employees.name as employeeName,logs.time,logs.success FROM logs LEFT OUTER JOIN employees ON logs.employeeID = employees.id LEFT OUTER JOIN doors ON logs.doorID = doors.id ORDER BY time DESC";
+                                        //Fetches all logs from the database and echos them as table rows
+                                        $sql = "SELECT employees.name as employeeName,logs.time,logs.success FROM logs LEFT OUTER JOIN employees ON logs.employeeID = employees.id ORDER BY time DESC";
                                         $result = $db->query($sql);
                                         
                                         if ($result->num_rows > 0) {
                                             while($row = $result->fetch_assoc()) {
                                                 $accessStateText = $row["success"] == 1 ? "Access Granted" : "Access Denied";
-                                                echo "<tr><td>" . $row["employeeName"] . "</td><td>" . $accessStateText . "</td><td>" . $row["time"] . "</td></tr>";
+                                                $employeeName = $row["employeeName"] == null ? "Removed User" : $row["employeeName"];
+                                                echo "<tr><td>" . $employeeName . "</td><td>" . $accessStateText . "</td><td>" . $row["time"] . "</td></tr>";
                                             }
                                         }
                                         ?>
@@ -83,5 +81,4 @@ require_once "config.php";
     <script src="assets/js/bs-init.js"></script>
     <script src="assets/js/theme.js"></script>
 </body>
-
 </html>
