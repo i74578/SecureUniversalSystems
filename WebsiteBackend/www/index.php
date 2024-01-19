@@ -1,13 +1,11 @@
 <?php
-// Initialize the session
+// Only allow user to access this page if they are logged in, otherwise redirect to login page
 session_start();
-
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
     exit;
 }
-
-// Include config file
+//Connect to DB
 require_once "config.php";
 ?>
 <!DOCTYPE html>
@@ -54,12 +52,13 @@ require_once "config.php";
                                         <div class="col me-2">
                                             <div class="text-uppercase text-primary fw-bold text-xs mb-1"><span>Last unlocked</span></div>
                                             <div class="text-dark fw-bold h5 mb-0"><span> 
-                                            <?php
-                                                $sql = "SELECT time FROM logs ORDER BY id DESC LIMIT 1";
-                                                $result = $db->query($sql);
-                                                echo $result->fetch_assoc()['time'];
-                                            ?>
-                                        </span></div>
+                                                <?php
+                                                    //Run sql query to get time of lastest log entry, and echo it
+                                                    $sql = "SELECT time FROM logs ORDER BY id DESC LIMIT 1";
+                                                    $result = $db->query($sql);
+                                                    echo $result->fetch_assoc()['time'];
+                                                ?>
+                                            </span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -72,11 +71,12 @@ require_once "config.php";
                                         <div class="col me-2">
                                             <div class="text-uppercase text-success fw-bold text-xs mb-1"><span>unlocked today(count)</span></div>
                                             <div class="text-dark fw-bold h5 mb-0"><span>
-                                            <?php
-                                                $sql = "SELECT COUNT(*) FROM logs WHERE time >= CURDATE()";
-                                                $result = $db->query($sql);
-                                                echo $result->fetch_assoc()['COUNT(*)'];
-                                            ?>
+                                                <?php
+                                                    //Run sql query to get the count of log entries today, and echo it
+                                                    $sql = "SELECT COUNT(*) FROM logs WHERE time >= CURDATE()";
+                                                    $result = $db->query($sql);
+                                                    echo $result->fetch_assoc()['COUNT(*)'];
+                                                ?>
                                             </span></div>
                                         </div>
                                         <div class="col-auto"><i class="fas fa-unlock-alt fa-2x text-gray-300"></i></div>
@@ -93,11 +93,12 @@ require_once "config.php";
                                             <div class="row g-0 align-items-center">
                                                 <div class="col-auto">
                                                     <div class="text-dark fw-bold h5 mb-0 me-3"><span>
-                                                    <?php
-                                                        $sql = "SELECT COUNT(*) FROM logs WHERE time BETWEEN NOW() - INTERVAL 30 DAY AND NOW();";
-                                                        $result = $db->query($sql);
-                                                        echo $result->fetch_assoc()['COUNT(*)'];
-                                                    ?>
+                                                        <?php
+                                                            //Run sql query to get the count of log entries this month, and echo it
+                                                            $sql = "SELECT COUNT(*) FROM logs WHERE time BETWEEN NOW() - INTERVAL 30 DAY AND NOW();";
+                                                            $result = $db->query($sql);
+                                                            echo $result->fetch_assoc()['COUNT(*)'];
+                                                        ?>
                                                     </span></div>
                                                 </div>
                                             </div>
@@ -114,12 +115,13 @@ require_once "config.php";
                                         <div class="col me-2">
                                             <div class="text-uppercase text-warning fw-bold text-xs mb-1"><span>Registered employees</span></div>
                                             <div class="text-dark fw-bold h5 mb-0"><span>
-                                            <?php
-                                                $sql = "SELECT COUNT(*) FROM employees";
-                                                $result = $db->query($sql);
-                                                $employeeCount = $result->fetch_assoc()['COUNT(*)'];
-                                                echo $employeeCount;
-                                            ?>
+                                                <?php
+                                                    //Run sql query to get the count of rows in employees table, and echo it
+                                                    $sql = "SELECT COUNT(*) FROM employees";
+                                                    $result = $db->query($sql);
+                                                    $employeeCount = $result->fetch_assoc()['COUNT(*)'];
+                                                    echo $employeeCount;
+                                                ?>
                                             </span></div>
                                         </div>
                                         <div class="col-auto"><i class="fas fa-users fa-2x text-gray-300"></i></div>
@@ -136,7 +138,8 @@ require_once "config.php";
                                 </div>
                                 <ul class="list-group list-group-flush">
                                     <?php
-                                        $sql = "SELECT employees.name as employeeName,logs.time,logs.success FROM logs LEFT OUTER JOIN employees ON logs.employeeID = employees.id LEFT OUTER JOIN doors ON logs.doorID = doors.id ORDER BY time DESC LIMIT 6";
+                                        //Run sql query to get the latest 6 log entries, and echo them as table rows
+                                        $sql = "SELECT employees.name as employeeName,logs.time,logs.success FROM logs LEFT OUTER JOIN employees ON logs.employeeID = employees.id ORDER BY time DESC LIMIT 6";
                                         $result = $db->query($sql);
                                         
                                         if ($result->num_rows > 0) {
@@ -164,12 +167,11 @@ require_once "config.php";
                                 </div>
                                 <div class="card-body">
                                     <?php
+                                        //Run sql query to get the count of emplyoees with and without access
                                         $sql = "SELECT COUNT(*) FROM dooraccess";
                                         $result = $db->query($sql);
                                         $accessCount = $result->fetch_assoc()['COUNT(*)'];
                                         $nonAccessCount = $employeeCount-$accessCount;
-                                        #$accessPercentage = round(($accessCount/$employeeCount)*100);
-                                        #$nonAccessPercentage = 100-$accessPercentage-5;
                                     ?>
                                     <div class="chart-area"><canvas data-bss-chart="{&quot;type&quot;:&quot;doughnut&quot;,&quot;data&quot;:{&quot;labels&quot;:[&quot;Access&quot;,&quot;Not access&quot;],&quot;datasets&quot;:[{&quot;label&quot;:&quot;&quot;,&quot;backgroundColor&quot;:[&quot;#4e73df&quot;,&quot;#1cc88a&quot;],&quot;borderColor&quot;:[&quot;#ffffff&quot;,&quot;#ffffff&quot;],&quot;data&quot;:[&quot;<?php echo $accessCount; ?>&quot;,&quot;<?php echo $nonAccessCount; ?>&quot;]}]},&quot;options&quot;:{&quot;maintainAspectRatio&quot;:false,&quot;legend&quot;:{&quot;display&quot;:false,&quot;labels&quot;:{&quot;fontStyle&quot;:&quot;normal&quot;}},&quot;title&quot;:{&quot;fontStyle&quot;:&quot;normal&quot;}}}"></canvas></div>
                                     <div class="text-center small mt-4"><span class="me-2"><i class="fas fa-circle text-primary"></i>&nbsp;Access</span><span class="me-2"><i class="fas fa-circle text-success"></i>&nbsp;Not access</span></div>
@@ -177,7 +179,6 @@ require_once "config.php";
                             </div>
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </div>
@@ -187,5 +188,4 @@ require_once "config.php";
     <script src="assets/js/bs-init.js"></script>
     <script src="assets/js/theme.js"></script>
 </body>
-
 </html>

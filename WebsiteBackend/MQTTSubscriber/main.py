@@ -4,51 +4,49 @@ import mariadb
 import time
 
 
+#MQTT broker attributes
+MQTT_broker_ip = "142.93.105.52"
+MQTT_broker_port = 1883
+MQTT_username = "entranceDoor"
+MQTT_password = "VMN2rLa8aloFFQ3"
+
+#SQL database attributes
+DB_user="phusr"
+DB_password="7yLCTYetfQha4k5t"
+DB_host="localhost"
+DB_database="sus"
 
 def fetchAcccessListFromDB():
     conn = mariadb.connect(
-        user="phusr",
-        password="ENTER_PASSWORD_HERE",
-        host="localhost",
-        database="sus")
+        user=DB_user,
+        password=DB_password,
+        host=DB_host,
+        database=DB_database)
     cur = conn.cursor() 
-
-    doorID = 1 
-    cur.execute("SELECT employees.pin, employees.nuid FROM dooraccess LEFT JOIN employees ON (dooraccess.employeeID = employees.id) WHERE dooraccess.doorID=?", (str(doorID),)) 
-
+    cur.execute("SELECT employees.pin, employees.nuid FROM dooraccess LEFT JOIN employees ON (dooraccess.employeeID = employees.id)") 
     accessList = str(cur.rowcount).zfill(2)
     for pin, nuid in cur: 
         print(f"pin: {pin}, nuid: {nuid}")
         accessList += nuid + str(pin)
-
     cur.close()
     conn.close()
     return accessList
 
-def addLogEntryToDB(logEntry):
+def insertLogEntryToDB(logEntry):
     conn = mariadb.connect(
-        user="phusr",
-        password="ENTER_PASSWORD_HERE",
-        host="localhost",
-        database="sus")
+        user=DB_user,
+        password=DB_password,
+        host=DB_host,
+        database=DB_database)
     conn.autocommit = True
     cur = conn.cursor() 
-
     success = logEntry[0]
-    doorID = 1
     nuid = logEntry[1:]
-    print(nuid)
-    cur.execute("INSERT INTO logs (employeeID,success,doorID,time) SELECT id,?,?,CURRENT_TIMESTAMP() FROM employees WHERE nuid=?", (int(success),doorID,str(nuid))) 
-    #INSERT INTO logs (employeeID,success,doorID,time) SELECT id,1,1,CURRENT_TIMESTAMP() FROM employees WHERE nuid='ABCDEF'
-    #(int(success),doorID,str(nuid))
-
-    # print content
-    print(cur.rowcount)
-
+    cur.execute("INSERT INTO logs (employeeID,success,time) SELECT id,?,CURRENT_TIMESTAMP() FROM employees WHERE nuid=?", (int(success),str(nuid))) 
     cur.close()
     conn.close()
 
-
+#Handler for received messages from MQTT Broker
 def message_handling(client, userdata, msg):
     print(f"{msg.topic}: {msg.payload.decode()}")
     if (msg.topic == "sus/hello"):
@@ -58,28 +56,22 @@ def message_handling(client, userdata, msg):
         client.publish("sus/accessList", acl)
     if (msg.topic == "sus/logEntry"):
         print("Received log entry: "+ msg.payload.decode())
-        addLogEntryToDB(msg.payload.decode())
+        insertLogEntryToDB(msg.payload.decode())
 
-
-
-
-
+#Continue running the code if any errors occur
 while True:
     try:
         print("Trying to connect...")
         client = paho.Client()
         client.on_message = message_handling
-        client.username_pw_set(username="entranceDoor",password="ENTER_PASSWORD_HERE")
-        if client.connect("142.93.105.52", 1883, 60) != 0:
+        client.username_pw_set(username=MQTT_username,password=MQTT_password)
+        if client.connect(MQTT_broker_ip, MQTT_broker_port, 60) != 0:
             print("Couldn't connect to the mqtt broker")
             sys.exit(1)
         print("Connected to the MQTT broker")
         client.subscribe("sus/hello")
         client.subscribe("sus/logEntry")
         client.loop_forever()
-    except Exception:
-        print("Caught an Exception, something went wrong...")
+    except Exception as e: 
+        print(e)
         time.sleep(10)
-#finally:
-#    print("Disconnecting from the MQTT broker")
-#    client.disconnect()

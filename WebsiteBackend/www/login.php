@@ -1,36 +1,28 @@
 <?php
-// Initialize the session
+// Only allow user to access this page if they are logged in, otherwise redirect to login page
 session_start();
-
-// Check if the user is already logged in, if yes then redirect him to welcome page
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
     header("location: index.php");
     exit;
 }
- 
-// Include config file
+//Connect to DB
 require_once "config.php";
 
+// Read user credentials from POST request, and check if they are valid
 if($_SERVER["REQUEST_METHOD"] == "POST") {
-    // username and password sent from form 
-    $myusername = mysqli_real_escape_string($db,$_POST['username']);
-    $mypassword = mysqli_real_escape_string($db,$_POST['password']); 
+    $username = mysqli_real_escape_string($db,$_POST['username']);
+    $password = mysqli_real_escape_string($db,$_POST['password']); 
     
-    $sql = "SELECT id FROM users WHERE username = '$myusername' and password = '$mypassword'";
+    $sql = "SELECT id FROM users WHERE username = '$username' and password = '$password'";
     $result = mysqli_query($db,$sql);
     $row = mysqli_fetch_array($result,MYSQLI_ASSOC);
-    
     $count = mysqli_num_rows($result);
     
-    // If result matched $myusername and $mypassword, table row must be 1 row
-      
+    // If credentials are valid, start a authenticated session and redirect to dashboard site
     if($count == 1) {
        session_start();
-                            
-       // Store data in session variables
        $_SESSION["loggedin"] = true;
-       $_SESSION["username"] = $myusername;   
-       
+       $_SESSION["username"] = $username;   
        header("location: index.php");
     }else {
        $error = "Your Login Name or Password is invalid";
@@ -93,5 +85,4 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="assets/js/bs-init.js"></script>
     <script src="assets/js/theme.js"></script>
 </body>
-
 </html>
