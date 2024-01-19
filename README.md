@@ -1,4 +1,4 @@
-"# SecureUniversalSystems" 
+# SecureUniversalSystems
 
 This is the source for the [secureuniversal.systems website] (https://secureuniversal.systems)
 
