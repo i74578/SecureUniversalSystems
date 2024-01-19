@@ -54,19 +54,19 @@ require_once "config.php";
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-                                            <th>Door</th>
-                                            <th>Success</th>
+                                            <th>Access State</th>
                                             <th>Time</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "SELECT employees.name as employeeName,doors.name as doorName,logs.time,logs.success FROM logs LEFT OUTER JOIN employees ON logs.employeeID = employees.id LEFT OUTER JOIN doors ON logs.doorID = doors.id ORDER BY id DESC";
+                                        $sql = "SELECT employees.name as employeeName,logs.time,logs.success FROM logs LEFT OUTER JOIN employees ON logs.employeeID = employees.id LEFT OUTER JOIN doors ON logs.doorID = doors.id ORDER BY time DESC";
                                         $result = $db->query($sql);
                                         
                                         if ($result->num_rows > 0) {
                                             while($row = $result->fetch_assoc()) {
-                                                echo "<tr><td>" . $row["employeeName"] . "</td><td>" . $row["doorName"] . "</td><td>" . $row["success"] . "</td><td>" . $row["time"] . "</td></tr>";
+                                                $accessStateText = $row["success"] == 1 ? "Access Granted" : "Access Denied";
+                                                echo "<tr><td>" . $row["employeeName"] . "</td><td>" . $accessStateText . "</td><td>" . $row["time"] . "</td></tr>";
                                             }
                                         }
                                         ?>

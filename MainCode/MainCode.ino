@@ -12,9 +12,9 @@ struct employee {
 
 #define SDA_PIN 5 // pin on ESP8266 connected to SDA on the RC522 RFID reader.
 #define RST_PIN 21 // pin connected to RST on the RFID reader.
-// SCK  <-> D5 (ESP8266), D18 (ESP32)
-// MISO <-> D6 (ESP8266), D19 (ESP32)
-// MOSI <-> D7 (ESP8266), D23 (ESP32)
+// SCK  <-> D18 (ESP32)
+// MISO <-> D19 (ESP32)
+// MOSI <-> D23 (ESP32)
 #define echoPin 22 // pin for echo on ultrasonic sensor.
 #define trigPin 2 // pin for trig on ultrasonic sensor.
 #define servoPin 27 // pin for orange wire on servo motor
