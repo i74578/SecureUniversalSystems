@@ -79,7 +79,7 @@ void loop() {
   //proximity sensor checks:
   if (distance() < triggerDistance && angle != openAngle) {
     opendoor();
-    delay(1000);
+    delay(3000);
   } else if (distance() >= triggerDistance && angle != closeAngle) {
     closedoor();
   }
@@ -237,6 +237,7 @@ void closedoor(){
 void sendLog(byte NUID[4], bool success){
   String logPayload = success ? "1" : "0";
   for (int i=0; i< 4; i++){
+    logPayload += NUID[i] < 0x10 ? "0" : "";
     logPayload += String(NUID[i], HEX);
   }
 
